@@ -1,0 +1,16 @@
+###create new item 
+Post http://localhost:3000/item/create
+Content-Type: application/json
+
+{
+    "name":"cheese burger",
+    "desc":"good cheese burger",
+    "price":1000
+
+}
+
+###get one item
+GET http://localhost:3000/item/1
+
+###get all items
+GET http://localhost:3000/item

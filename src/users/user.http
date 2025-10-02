@@ -1,0 +1,14 @@
+### Signup new users
+
+POST http://localhost:3000/auth/signup
+Content-Type: application/json
+
+
+{
+    "name":"kia",
+    "lastname":"fayaz",
+    "email":"kia@gmail.com",
+    "password":"test1234",
+    "mobile":989127119299
+
+}
