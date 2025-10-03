@@ -9,6 +9,12 @@ export class UserDto {
   name: string;
   @Expose()
   lastname: string;
+  // @Expose()
+  // token: string;
   @Expose()
-  token: string;
+  mobile: string;
+  @Expose()
+  address?: string;
+  @Expose() createdAt: Date;
+  @Expose() updatedAt: Date;
 }

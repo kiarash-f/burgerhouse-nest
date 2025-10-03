@@ -16,6 +16,9 @@ import { ConfigService, ConfigType } from '@nestjs/config';
 import authConfig from '../config/auth.config';
 import type { Request, Response } from 'express';
 import { UsersService } from '../users/users.service';
+import { toUserDto } from 'src/users/dtos/to-user-dto';
+import { ForgotPasswordDto } from '../users/dtos/forgot-password.dto';
+import { ResetPasswordDto } from '../users/dtos/reset-password.dto';
 
 function buildCookieOpts(cfg: ConfigService) {
   const auth = cfg.get<ConfigType<typeof authConfig>>('auth')!;
@@ -54,13 +57,13 @@ export class AuthController {
       mobile,
       address,
     );
-    // اگر می‌خوای بعد Signup هم کوکی ست بشه (تجربه بهتر):
+
     res?.cookie(
       'refresh_token',
       result.refreshToken,
       buildCookieOpts(this.cfg),
     );
-    return { user: result.user, accessToken: result.accessToken };
+    return { user: toUserDto(result.user), accessToken: result.accessToken };
   }
 
   @Post('signin')
@@ -72,7 +75,7 @@ export class AuthController {
   ) {
     const result = await this.auth.signin(email, password);
     res.cookie('refresh_token', result.refreshToken, buildCookieOpts(this.cfg));
-    return { user: result.user, accessToken: result.accessToken };
+    return { user: toUserDto(result.user), accessToken: result.accessToken };
   }
 
   // -------- Google OAuth --------
@@ -88,11 +91,20 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    // req.user باید حداقل userId داشته باشد (در google.strategy تنظیم شده)
-    const { userId } = req.user as any;
-    const tokens = await this.auth.issueTokens(Number(userId));
+    const { userId } = req.user as { userId: number; email: string };
+
+    const tokens = await this.auth.issueTokens(userId);
+
     res.cookie('refresh_token', tokens.refreshToken, buildCookieOpts(this.cfg));
-    return { accessToken: tokens.accessToken };
+
+    const user = await this.users.findOne(userId);
+
+    const safeUser = toUserDto(user);
+
+    return {
+      user: safeUser,
+      accessToken: tokens.accessToken,
+    };
   }
 
   // -------- Token Refresh / Logout --------
@@ -103,7 +115,7 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const payload = req.user as any; // از استراتژی: { sub, token? }
+    const payload = req.user as any;
     const raw = (req as any).cookies?.['refresh_token'] ?? payload?.token;
     const tokens = await this.auth.rotateRefreshToken(Number(payload.sub), raw);
     res.cookie('refresh_token', tokens.refreshToken, buildCookieOpts(this.cfg));
@@ -113,19 +125,29 @@ export class AuthController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   async me(@CurrentUser() user: { userId: number }) {
-    // user.userId از JwtStrategy.validate می‌آد
     const me = await this.users.findOne(user.userId);
-    // اگر password select:false هست، همین برمی‌گرده بدون پسورد
-    return me;
+
+    return toUserDto(me);
   }
 
-  // --- خروج از همین سشن (revocation + پاک کردن کوکی) ---
   @Post('logout')
   @HttpCode(200)
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const raw = (req as any).cookies?.['refresh_token'];
     if (raw) await this.auth.revokeByRaw(raw);
-    res.clearCookie('refresh_token', { path: '/auth' }); // اگر path در config چیز دیگری است همان را بگذار
+    res.clearCookie('refresh_token', { path: '/auth' });
     return { success: true };
+  }
+
+  @Post('forgot-password')
+  @HttpCode(200)
+  async forgotPassword(@Body() body: ForgotPasswordDto) {
+    return this.auth.requestPasswordReset(body.email);
+  }
+
+  @Post('reset-password')
+  @HttpCode(200)
+  async resetPassword(@Body() body: ResetPasswordDto) {
+    return this.auth.resetPassword(body.token, body.newPassword);
   }
 }

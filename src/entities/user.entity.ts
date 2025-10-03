@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { RefreshToken } from './refresh-token.entity';
 
-@Entity('user') // نام جدول را صریح کن
+@Entity('user')
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
@@ -29,7 +29,6 @@ export class User {
   @Column({ type: 'text', nullable: true })
   address: string | null;
 
-  // ⬇️ بسیار مهم: ستون password باید وجود داشته باشد
   @Column({ type: 'text', nullable: true, select: false })
   password: string | null;
 

@@ -1,15 +1,16 @@
-// src/auth/strategies/google.strategy.ts
-import { PassportStrategy } from '@nestjs/passport';
+// src/strategies/google.strategy.ts
 import { Injectable } from '@nestjs/common';
-import { Strategy, VerifyCallback } from 'passport-google-oauth20';
+import { PassportStrategy } from '@nestjs/passport';
+import { Strategy, Profile, VerifyCallback } from 'passport-google-oauth20';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from '../auth/auth.service';
+import type { Request } from 'express';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(
-    private cfg: ConfigService,
-    private auth: AuthService,
+    private readonly cfg: ConfigService,
+    private readonly auth: AuthService,
   ) {
     super({
       clientID: cfg.get<string>('google.clientId')!,
@@ -21,20 +22,43 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   }
 
   async validate(
-    req: Request,
-    accessToken: string,
-    refreshToken: string,
-    profile: any,
+    _req: Request,
+    _accessToken: string,
+    _refreshToken: string,
+    profile: Profile,
     done: VerifyCallback,
   ) {
-    const { id, name, emails } = profile;
-    const user = await this.auth.validateOAuthLogin(
-      'google',
-      id,
-      emails[0].value,
-      name.givenName,
-      name.familyName,
-    );
-    done(null, { userId: user.user.id, email: user.user.email });
+    try {
+      const provider = 'google';
+      const providerId = profile.id;
+
+      const email =
+        profile.emails && profile.emails[0] ? profile.emails[0].value : null;
+
+      const firstName = profile.name?.givenName ?? '';
+      const lastName = profile.name?.familyName ?? '';
+
+      if (!email) {
+        // ❌ قبلاً: done(new Error(...), null)
+        return done(
+          new Error('Google account did not provide an email'),
+          false,
+        );
+      }
+
+      const { user } = await this.auth.validateOAuthLogin(
+        provider,
+        providerId,
+        email,
+        firstName,
+        lastName,
+      );
+
+      // فقط payload سبک به req.user پاس بده
+      return done(null, { userId: user.id, email: user.email });
+    } catch (err) {
+      // ❌ قبلاً: done(err as any, null)
+      return done(err as any, false);
+    }
   }
 }

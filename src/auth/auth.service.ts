@@ -9,11 +9,13 @@ import { UsersService } from '../users/users.service';
 import type { UserWithPassword } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, LessThan } from 'typeorm';
 import { RefreshToken } from '../entities/refresh-token.entity';
 import { ConfigService } from '@nestjs/config';
 import * as argon2 from 'argon2';
+import * as crypto from 'crypto';
 import { User } from '../entities/user.entity';
+import { PasswordResetToken } from '../entities/password-reset.entity';
 
 @Injectable()
 export class AuthService {
@@ -23,6 +25,8 @@ export class AuthService {
     private cfg: ConfigService,
     @InjectRepository(RefreshToken)
     private rtRepo: Repository<RefreshToken>,
+    @InjectRepository(PasswordResetToken)
+    private prtRepo: Repository<PasswordResetToken>,
   ) {}
 
   // ================= JWT helpers ================
@@ -60,11 +64,9 @@ export class AuthService {
     const decoded: any = this.jwt.decode(refreshToken);
     const tokenHash = await argon2.hash(refreshToken);
 
-    // ساخت User entity برای رابطه
     const userEntity = new User();
     userEntity.id = userId;
 
-    // ساخت RefreshToken entity به‌صورت دستی (برای رضایت TS)
     const tokenEntity = new RefreshToken();
     tokenEntity.user = userEntity;
     tokenEntity.tokenHash = tokenHash;
@@ -139,7 +141,6 @@ export class AuthService {
 
     const hash = await argon2.hash(password);
 
-    // کاربر محلی را می‌سازیم (بدون برگرداندن پسورد در پاسخ)
     const newUser = await this.users.create({
       email,
       name,
@@ -148,12 +149,10 @@ export class AuthService {
       address,
     } as any);
 
-    // ذخیره‌ی هش پسورد در DB (ست کردن مستقیم فقط فیلد لازم)
     await this.users.update(newUser.id, { password: hash } as any);
 
     const tokens = await this.issueTokens(newUser.id);
 
-    // مطمئن شو password در خروجی نیست
     return { user: newUser, ...tokens };
   }
 
@@ -166,7 +165,6 @@ export class AuthService {
 
     const passwordHash = user.password;
     if (!passwordHash) {
-      // کاربر احتمالاً با Google ساخته شده است
       throw new UnauthorizedException('No password set for this user');
     }
 
@@ -175,7 +173,6 @@ export class AuthService {
 
     const tokens = await this.issueTokens(user.id);
 
-    // password را از آبجکت پاک کنیم (هرچند select:false بوده)
     delete (user as any).password;
 
     return { user, ...tokens };
@@ -213,5 +210,82 @@ export class AuthService {
         revoked: false,
       })
       .execute();
+  }
+  // ================= Password reset =================
+  private resetTokenTime() {
+    return 30 * 60 * 1000;
+    //add this to config later
+  }
+
+  async requestPasswordReset(email: string) {
+    const user = await this.users.findByEmail(email);
+
+    const generic = {
+      message:
+        'If that email is registered, you will receive a password reset link.',
+    };
+
+    if (!user) return generic;
+
+    const raw = crypto.randomBytes(32).toString('hex');
+    const tokenHash = await argon2.hash(raw);
+
+    const token = new PasswordResetToken();
+    token.user = user;
+    token.tokenHash = tokenHash;
+    token.expiresAt = new Date(Date.now() + this.resetTokenTime());
+    token.used = false;
+
+    await this.prtRepo.save(token);
+
+    const baseUrl = this.cfg.get<string>('app.url') ?? 'http://localhost:3000';
+    const resetUrl = `${baseUrl}/reset-password?token=${raw}`;
+
+    return {
+      ...generic,
+      resetUrl,
+    };
+  }
+
+  async resetPassword(rawToken: string, newPassword: string) {
+    const candidates = await this.prtRepo.find({
+      where: { used: false },
+      relations: ['user'],
+      order: { createdAt: 'DESC' },
+    });
+    let match: PasswordResetToken | null = null;
+
+    for (const t of candidates) {
+      if (t.expiresAt.getTime() < Date.now()) continue;
+      if (await argon2.verify(t.tokenHash, rawToken)) {
+        match = t;
+        break;
+      }
+    }
+    if (!match) throw new BadRequestException('Invalid or expired ResetToken');
+
+    const user = match.user;
+
+    const hash = await argon2.hash(newPassword);
+    await this.users.update(user.id, { password: hash } as any);
+
+    match.used = true;
+    await this.prtRepo.save(match);
+
+    if (typeof this.revokeAllForUser === 'function') {
+      await this.revokeAllForUser(user.id);
+    } else {
+      const tokens = await this.rtRepo.find({
+        where: { revoked: false } as any,
+        relations: ['user'],
+      });
+      for (const rt of tokens) {
+        if (rt.user.id === user.id) {
+          rt.revoked = true;
+          await this.rtRepo.save(rt);
+        }
+      }
+    }
+    return { message: 'Password reset successfully' };
   }
 }

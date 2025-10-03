@@ -10,13 +10,14 @@ import { UsersModule } from '../users/users.module';
 import { JwtStrategy } from '../strategies/jwt.strategy';
 import { JwtRefreshStrategy } from '../strategies/jwt-refresh.strategy';
 import { GoogleStrategy } from '../strategies/google.strategy';
+import { PasswordResetToken } from '../entities/password-reset.entity';
 
 @Module({
   imports: [
     UsersModule,
-    TypeOrmModule.forFeature([RefreshToken]),
+    TypeOrmModule.forFeature([RefreshToken, PasswordResetToken]),
     PassportModule,
-    JwtModule.register({}), // تنظیمات در Service/Config
+    JwtModule.register({}),
   ],
   providers: [AuthService, JwtStrategy, JwtRefreshStrategy, GoogleStrategy],
   controllers: [AuthController],
