@@ -8,14 +8,19 @@ import {
   Param,
   ParseIntPipe,
   BadRequestException,
+  UseGuards,
 } from '@nestjs/common';
 import { CreateItemDto } from './dtos/create-item.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ItemService } from './item.service';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { RolesGuard } from '../guards/roles.guard';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { Roles } from '../decorators/roles.decorator';
 
 @Controller('item')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class ItemController {
   constructor(private itemsServivce: ItemService) {}
   @UseInterceptors(
@@ -30,6 +35,7 @@ export class ItemController {
     }),
   )
   @Post('/create')
+  @Roles('ADMIN')
   createItem(
     @Body() body: CreateItemDto,
     @UploadedFile() uploadedFile: Express.Multer.File,

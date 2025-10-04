@@ -9,6 +9,8 @@ import {
 } from 'typeorm';
 import { RefreshToken } from './refresh-token.entity';
 
+export type UserRole = 'ADMIN' | 'USER';
+
 @Entity('user')
 export class User {
   @PrimaryGeneratedColumn()
@@ -31,6 +33,9 @@ export class User {
 
   @Column({ type: 'text', nullable: true, select: false })
   password: string | null;
+
+  @Column({ type: 'text', default: 'user' })
+  role: UserRole;
 
   @Column({ type: 'text', nullable: true })
   provider: string | null;
