@@ -9,6 +9,9 @@ import {
   ParseIntPipe,
   BadRequestException,
   UseGuards,
+  Patch,
+  Delete,
+  Query,
 } from '@nestjs/common';
 import { CreateItemDto } from './dtos/create-item.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -18,45 +21,74 @@ import { extname } from 'path';
 import { RolesGuard } from '../guards/roles.guard';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { Roles } from '../decorators/roles.decorator';
+import { ItemQueryDto } from './dtos/item-query.dto';
 
-@Controller('item')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@Controller('items')
 export class ItemController {
-  constructor(private itemsServivce: ItemService) {}
+  constructor(private itemsService: ItemService) {}
+
+  // عمومی
+  @Get()
+  list(@Query() q: ItemQueryDto) {
+    return this.itemsService.query(q);
+  }
+
+  @Get(':id')
+  getItem(@Param('id', ParseIntPipe) id: number) {
+    return this.itemsService.findOne(id);
+  }
+
+  // ادمین
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
   @UseInterceptors(
     FileInterceptor('image', {
       storage: diskStorage({
         destination: './uploads',
-        filename: (req, file, cb) => {
+        filename: (_req, file, cb) => {
           const randomName = Date.now() + '-' + Math.round(Math.random() * 1e9);
-          return cb(null, `${randomName}${extname(file.originalname)}`);
+          cb(null, `${randomName}${extname(file.originalname)}`);
         },
       }),
     }),
   )
-  @Post('/create')
-  @Roles('ADMIN')
+  @Post()
   createItem(
     @Body() body: CreateItemDto,
-    @UploadedFile() uploadedFile: Express.Multer.File,
+    @UploadedFile() file?: Express.Multer.File,
   ) {
-    if (!uploadedFile) {
-      throw new BadRequestException('No file uploaded');
-    }
-
-    return this.itemsServivce.create(
+    if (!file) throw new BadRequestException('No file uploaded');
+    return this.itemsService.create(
       body.name,
       body.desc,
       Number(body.price),
-      uploadedFile.filename,
+      file.filename,
+      Number(body.categoryId),
+      body.active ?? true,
     );
   }
-  @Get('/:id')
-  getItem(@Param('id', ParseIntPipe) id: number) {
-    return this.itemsServivce.findOne(id);
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @Patch(':id')
+  updateItem(
+    @Param('id', ParseIntPipe) id: number,
+    @Body()
+    patch: {
+      name?: string;
+      desc?: string;
+      price?: number;
+      active?: boolean;
+      categoryId?: number;
+    },
+  ) {
+    return this.itemsService.updateBasic(id, patch);
   }
-  @Get()
-  getAllItems() {
-    return this.itemsServivce.findAll();
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @Delete(':id')
+  removeItem(@Param('id', ParseIntPipe) id: number) {
+    return this.itemsService.remove(id);
   }
 }

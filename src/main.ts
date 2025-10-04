@@ -10,7 +10,9 @@ async function bootstrap() {
 
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,
+      whitelist: true, // فیلدهای اضافه حذف
+      transform: true, // 👈 تبدیل string به number/boolean براساس DTO
+      transformOptions: { enableImplicitConversion: true },
     }),
   );
   (app as any).set('etag', false);
