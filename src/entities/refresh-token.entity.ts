@@ -16,19 +16,19 @@ export class RefreshToken {
   @ManyToOne(() => User, (u) => u.refreshTokens, { onDelete: 'CASCADE' })
   user: User;
 
-  @Column({ type: 'text' }) // ✅ string صریح
+  @Column({ type: 'text' })
   tokenHash: string;
 
-  @Column({ type: 'datetime' }) // ✅ برای SQLite
+  @Column({ type: 'datetime' })
   expiresAt: Date;
 
   @Column({ type: 'boolean', default: false })
   revoked: boolean;
 
-  @Column({ type: 'text', nullable: true }) // ✅ nullپذیر، نوع مشخص
+  @Column({ type: 'text', nullable: true })
   userAgent: string | null;
 
-  @Column({ type: 'text', nullable: true }) // ✅ nullپذیر، نوع مشخص
+  @Column({ type: 'text', nullable: true })
   ip: string | null;
 
   @CreateDateColumn({ type: 'datetime' })

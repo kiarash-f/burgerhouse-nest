@@ -9,13 +9,16 @@ import { Repository } from 'typeorm';
 import { Item } from '../entities/item.entity';
 import { Category } from '../entities/category.entity';
 import { ItemQueryDto } from './dtos/item-query.dto';
-import { toItemDto, toItemDtoArray } from './mappers/item.mapper'; // <-- mapper
+import { toItemDto, toItemDtoArray } from './mappers/item.mapper';
+import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 
 @Injectable()
 export class ItemService {
   constructor(
     @InjectRepository(Item) private readonly repo: Repository<Item>,
     @InjectRepository(Category) private readonly catRepo: Repository<Category>,
+    @InjectPinoLogger(ItemService.name)
+    private readonly logger: PinoLogger,
   ) {}
 
   // CREATE: returns ItemDto
@@ -27,6 +30,7 @@ export class ItemService {
     categoryId: number,
     active = true,
   ) {
+    this.logger.debug('Creating item');
     const category = await this.catRepo.findOne({ where: { id: categoryId } });
     if (!category) throw new BadRequestException('Invalid category');
 

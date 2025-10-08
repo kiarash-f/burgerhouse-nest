@@ -1,17 +1,21 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
-// const cookieSession = require('cookie-session');
+import { Logger } from 'nestjs-pino';
 const cookieParser = require('cookie-parser');
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+    logger: false,
+  });
+  app.useLogger(app.get(Logger));
   app.use(cookieParser());
 
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // فیلدهای اضافه حذف
-      transform: true, // 👈 تبدیل string به number/boolean براساس DTO
+      whitelist: true,
+      transform: true,
       transformOptions: { enableImplicitConversion: true },
     }),
   );
