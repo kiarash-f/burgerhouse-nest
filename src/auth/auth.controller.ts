@@ -134,9 +134,16 @@ export class AuthController {
   @HttpCode(200)
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const raw = (req as any).cookies?.['refresh_token'];
-    if (raw) await this.auth.revokeByRaw(raw);
-    res.clearCookie('refresh_token', { path: '/auth' });
-    return { success: true };
+    if (raw) {
+      try {
+        await this.auth.revokeByRaw(raw);
+      } catch (err) {}
+    }
+
+    const opts = buildCookieOpts(this.cfg);
+    res.clearCookie('refresh_token', { path: opts.path });
+
+    return { success: true, message: 'Logged out successfully' };
   }
 
   @Post('forgot-password')

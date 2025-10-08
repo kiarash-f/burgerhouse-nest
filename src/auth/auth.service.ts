@@ -1,4 +1,3 @@
-// src/auth/auth.service.ts
 import {
   Injectable,
   BadRequestException,
@@ -9,13 +8,15 @@ import { UsersService } from '../users/users.service';
 import type { UserWithPassword } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan } from 'typeorm';
+import { Repository } from 'typeorm';
 import { RefreshToken } from '../entities/refresh-token.entity';
 import { ConfigService } from '@nestjs/config';
 import * as argon2 from 'argon2';
 import * as crypto from 'crypto';
 import { User } from '../entities/user.entity';
 import { PasswordResetToken } from '../entities/password-reset.entity';
+
+type Role = 'ADMIN' | 'USER';
 
 @Injectable()
 export class AuthService {
@@ -29,8 +30,14 @@ export class AuthService {
     private prtRepo: Repository<PasswordResetToken>,
   ) {}
 
+  // ================= Helpers ================
+  private async getUserRole(userId: number): Promise<Role> {
+    const user = await this.users.findOne(userId);
+    return (user.role?.toUpperCase?.() as Role) ?? 'USER';
+  }
+
   // ================= JWT helpers ================
-  private async signAccess(userId: number, role = 'USER') {
+  private async signAccess(userId: number, role: Role) {
     return this.jwt.signAsync(
       { sub: userId, role },
       {
@@ -51,11 +58,9 @@ export class AuthService {
   }
 
   // ================= Tokens cycle ================
-  async issueTokens(
-    userId: number,
-    role = 'USER',
-    meta?: { ua?: string; ip?: string },
-  ) {
+  async issueTokens(userId: number, meta?: { ua?: string; ip?: string }) {
+    const role = await this.getUserRole(userId);
+
     const [accessToken, refreshToken] = await Promise.all([
       this.signAccess(userId, role),
       this.signRefresh(userId),
@@ -97,7 +102,7 @@ export class AuthService {
     throw new UnauthorizedException('Invalid refresh token');
   }
 
-  async rotateRefreshToken(userId: number, raw: string, role = 'USER') {
+  async rotateRefreshToken(userId: number, raw: string) {
     await this.validateRefreshToken(userId, raw);
 
     const tokens = await this.rtRepo.find({
@@ -113,7 +118,7 @@ export class AuthService {
       }
     }
 
-    return this.issueTokens(userId, role);
+    return this.issueTokens(userId);
   }
 
   async revokeByRaw(raw: string) {
@@ -125,6 +130,18 @@ export class AuthService {
         return;
       }
     }
+  }
+
+  async revokeAllForUser(userId: number) {
+    await this.rtRepo
+      .createQueryBuilder()
+      .update(RefreshToken)
+      .set({ revoked: true })
+      .where('userId = :id AND revoked = :revoked', {
+        id: userId,
+        revoked: false,
+      })
+      .execute();
   }
 
   // ================= Local auth =================
@@ -200,21 +217,11 @@ export class AuthService {
     const tokens = await this.issueTokens(user.id);
     return { user, ...tokens };
   }
-  async revokeAllForUser(userId: number) {
-    await this.rtRepo
-      .createQueryBuilder()
-      .update(RefreshToken)
-      .set({ revoked: true })
-      .where('userId = :id AND revoked = :revoked', {
-        id: userId,
-        revoked: false,
-      })
-      .execute();
-  }
+
   // ================= Password reset =================
   private resetTokenTime() {
     return 30 * 60 * 1000;
-    //add this to config later
+    // add this to config later
   }
 
   async requestPasswordReset(email: string) {
@@ -272,20 +279,9 @@ export class AuthService {
     match.used = true;
     await this.prtRepo.save(match);
 
-    if (typeof this.revokeAllForUser === 'function') {
-      await this.revokeAllForUser(user.id);
-    } else {
-      const tokens = await this.rtRepo.find({
-        where: { revoked: false } as any,
-        relations: ['user'],
-      });
-      for (const rt of tokens) {
-        if (rt.user.id === user.id) {
-          rt.revoked = true;
-          await this.rtRepo.save(rt);
-        }
-      }
-    }
+    // Invalidate all sessions after password change
+    await this.revokeAllForUser(user.id);
+
     return { message: 'Password reset successfully' };
   }
 }

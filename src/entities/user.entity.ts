@@ -34,7 +34,7 @@ export class User {
   @Column({ type: 'text', nullable: true, select: false })
   password: string | null;
 
-  @Column({ type: 'text', default: 'user' })
+  @Column({ type: 'text', default: 'USER' })
   role: UserRole;
 
   @Column({ type: 'text', nullable: true })

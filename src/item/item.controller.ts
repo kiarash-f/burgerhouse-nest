@@ -1,3 +1,4 @@
+// src/items/item.controller.ts
 import {
   Controller,
   Post,
@@ -15,19 +16,22 @@ import {
 } from '@nestjs/common';
 import { CreateItemDto } from './dtos/create-item.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import * as multer from 'multer';
 import { ItemService } from './item.service';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
 import { RolesGuard } from '../guards/roles.guard';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { Roles } from '../decorators/roles.decorator';
 import { ItemQueryDto } from './dtos/item-query.dto';
+import { MediaService } from '../media/media.service'; // <-- add this
 
 @Controller('items')
 export class ItemController {
-  constructor(private itemsService: ItemService) {}
+  constructor(
+    private readonly itemsService: ItemService,
+    private readonly mediaService: MediaService, // <-- inject
+  ) {}
 
-  // عمومی
+  // Public
   @Get()
   list(@Query() q: ItemQueryDto) {
     return this.itemsService.query(q);
@@ -38,36 +42,45 @@ export class ItemController {
     return this.itemsService.findOne(id);
   }
 
-  // ادمین
+  // Admin: create item with image -> upload to Cloudinary
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @UseInterceptors(
     FileInterceptor('image', {
-      storage: diskStorage({
-        destination: './uploads',
-        filename: (_req, file, cb) => {
-          const randomName = Date.now() + '-' + Math.round(Math.random() * 1e9);
-          cb(null, `${randomName}${extname(file.originalname)}`);
-        },
-      }),
+      storage: multer.memoryStorage(), // <-- switch to memory so we can stream to Cloudinary
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB guard (tweak as you like)
     }),
   )
   @Post()
-  createItem(
+  async createItem(
     @Body() body: CreateItemDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
     if (!file) throw new BadRequestException('No file uploaded');
+    if (!/^image\//.test(file.mimetype)) {
+      throw new BadRequestException('Only image uploads are allowed');
+    }
+
+    // Upload to Cloudinary and get responsive URLs
+    const media = await this.mediaService.uploadItemImage(
+      file,
+      `items/${body.categoryId}`, // optional folder hint
+    );
+
+    // If your ItemService.create signature hasn't changed,
+    // pass the Cloudinary URL instead of local filename:
     return this.itemsService.create(
       body.name,
       body.desc,
       Number(body.price),
-      file.filename,
+      media.variants.md.url, // <-- use the medium variant as the main image
       Number(body.categoryId),
       body.active ?? true,
+      // If you later add mediaId to your create(), pass media.id here.
     );
   }
 
+  // Admin: update basic fields (no image change)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @Patch(':id')
@@ -85,6 +98,7 @@ export class ItemController {
     return this.itemsService.updateBasic(id, patch);
   }
 
+  // Admin: delete
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @Delete(':id')

@@ -1,3 +1,4 @@
+// src/app.module.ts
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppConfigModule } from './config';
@@ -9,6 +10,7 @@ import { ItemModule } from './item/item.module';
 import { CategoriesModule } from './categories/categories.module';
 import { CartModule } from './cart/cart.module';
 import { OrdersModule } from './orders/orders.module';
+import { MediaModule } from './media/media.module'; // <-- add
 
 @Module({
   imports: [
@@ -32,6 +34,7 @@ import { OrdersModule } from './orders/orders.module';
     CategoriesModule,
     CartModule,
     OrdersModule,
+    MediaModule, // <-- add
   ],
 })
 export class AppModule {}
