@@ -10,7 +10,8 @@ import { ItemModule } from './item/item.module';
 import { CategoriesModule } from './categories/categories.module';
 import { CartModule } from './cart/cart.module';
 import { OrdersModule } from './orders/orders.module';
-import { MediaModule } from './media/media.module'; // <-- add
+import { MediaModule } from './media/media.module';
+import { MenuModule } from './menu/menu.module';
 
 @Module({
   imports: [
@@ -34,7 +35,8 @@ import { MediaModule } from './media/media.module'; // <-- add
     CategoriesModule,
     CartModule,
     OrdersModule,
-    MediaModule, // <-- add
+    MediaModule,
+    MenuModule,
   ],
 })
 export class AppModule {}

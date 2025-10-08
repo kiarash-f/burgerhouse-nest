@@ -20,7 +20,9 @@
 									"pm.test('Status 201 Created or 200 OK', function(){ pm.response.to.have.status.oneOf([200,201]); });",
 									"try { var json = pm.response.json(); if (json.accessToken) pm.environment.set('jwt', json.accessToken); } catch(e) {}"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
 							}
 						}
 					],
@@ -32,7 +34,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"user1@example.com\",\n  \"password\": \"StrongPassword#123\",\n  \"name\": \"John\",\n  \"lastname\": \"Doe\",\n  \"mobile\": \"+4915123456789\",\n  \"address\": \"Berlin, DE\"\n}",
+							"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Passw0rd!\",\n  \"name\": \"John\",\n  \"lastname\": \"Doe\",\n  \"mobile\": \"09000000000\",\n  \"address\": \"Test Street\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -63,7 +65,9 @@
 									"pm.test('Status 200', function(){ pm.response.to.have.status(200); });",
 									"try { var json = pm.response.json(); if (json.accessToken) pm.environment.set('jwt', json.accessToken); } catch(e) {}"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
 							}
 						}
 					],
@@ -75,7 +79,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"user1@example.com\",\n  \"password\": \"StrongPassword#123\"\n}",
+							"raw": "{\n  \"email\": \"kiarash@example.com\",\n  \"password\": \"123456\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -235,7 +239,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"user1@example.com\"\n}",
+							"raw": "{\n  \"email\": \"user@example.com\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -266,7 +270,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"token\": \"RESET_TOKEN_FROM_EMAIL\",\n  \"newPassword\": \"NewStrongPassword#123\"\n}",
+							"raw": "{\n  \"token\": \"21e4c47900e8787ab99e7fca8a73cd9e6a57ef659483ff78bc95947f4e47399a\",\n  \"newPassword\": \"NewStrongPassword#123\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -320,7 +324,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Burgers\",\n  \"desc\": \"Beef & chicken burgers\",\n  \"active\": true\n}",
+							"raw": "{\n  \"name\": \"Burgers\",\n  \"desc\": \"Beef & chicken burgers\",\n  \"active\": true,\n  \"slug\":\"burger\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -347,7 +351,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Burgers & Sandwiches\",\n  \"active\": true\n}",
+							"raw": "{\n  \"name\": \"Sandwiches\",\n  \"active\": true\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -365,7 +369,8 @@
 							],
 							"variable": [
 								{
-									"key": "id"
+									"key": "id",
+									"value": ""
 								}
 							]
 						},
@@ -432,18 +437,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/items/:id",
+							"raw": "{{baseUrl}}/items/5",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"items",
-								":id"
-							],
-							"variable": [
-								{
-									"key": "id"
-								}
+								"5"
 							]
 						},
 						"description": "Public: get a single item by numeric id."
@@ -470,7 +470,7 @@
 								},
 								{
 									"key": "price",
-									"value": "9.99",
+									"value": "10",
 									"type": "text"
 								},
 								{
@@ -485,8 +485,8 @@
 								},
 								{
 									"key": "image",
-									"value": "",
-									"type": "file"
+									"type": "file",
+									"src": "/C:/Users/USER/OneDrive/Pictures/conte.png"
 								}
 							]
 						},
@@ -510,7 +510,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Classic Burger XL\",\n  \"price\": 11.99,\n  \"active\": true,\n  \"categoryId\": 1\n}",
+							"raw": "{\n  \"name\": \"Classic Burger XL\",\n  \"price\": 11,\n  \"active\": true,\n  \"categoryId\": 1\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -518,18 +518,13 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/items/:id",
+							"raw": "{{baseUrl}}/items/3",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"items",
-								":id"
-							],
-							"variable": [
-								{
-									"key": "id"
-								}
+								"3"
 							]
 						},
 						"description": "ADMIN only: partial update by id. Fields: name, desc, price, active, categoryId."
@@ -625,18 +620,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/users/:id",
+							"raw": "{{baseUrl}}/users/3",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"users",
-								":id"
-							],
-							"variable": [
-								{
-									"key": "id"
-								}
+								"3"
 							]
 						},
 						"description": "Get a user by id (returns safe user DTO)."
@@ -661,18 +651,13 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/users/:id",
+							"raw": "{{baseUrl}}/users/5",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"users",
-								":id"
-							],
-							"variable": [
-								{
-									"key": "id"
-								}
+								"5"
 							]
 						},
 						"description": "Update a user by id. Returns updated safe user DTO."
@@ -688,12 +673,103 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/users/:id",
+							"raw": "{{baseUrl}}/users/5",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"users",
+								"5"
+							]
+						},
+						"description": "Delete a user by id."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Cart",
+			"item": [
+				{
+					"name": "List my cart",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/cart",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"cart"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add to cart",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"itemId\": 1,\n  \"quantity\": 2,\n  \"note\": \"no pickles\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/cart",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"cart"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update cart line",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"quantity\": 5,\n  \"note\": \"extra cheese\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/cart/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"cart",
 								":id"
 							],
 							"variable": [
@@ -701,8 +777,244 @@
 									"key": "id"
 								}
 							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove cart line",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/cart/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"cart",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Clear entire cart",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/cart",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"cart"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Orders",
+			"item": [
+				{
+					"name": "Admin",
+					"item": [
+						{
+							"name": "List all orders (Admin)",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{adminJwt}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/orders/admin/all",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"orders",
+										"admin",
+										"all"
+									]
+								}
+							},
+							"response": []
 						},
-						"description": "Delete a user by id."
+						{
+							"name": "Update order status (Admin)",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{adminJwt}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"status\": \"preparing\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/orders/admin/:id/status",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"orders",
+										"admin",
+										":id",
+										"status"
+									],
+									"variable": [
+										{
+											"key": "id"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Create order from cart",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"Berlin, DE\",\n  \"paymentMethod\": \"card\",\n  \"note\": \"ring the bell\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/orders",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List my orders",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/orders",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get my order by id",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/orders/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"orders",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel my order",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/orders/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"orders",
+								"1"
+							]
+						}
 					},
 					"response": []
 				}
@@ -727,6 +1039,11 @@
 		{
 			"key": "jwt",
 			"value": ""
+		},
+		{
+			"key": "base_url",
+			"value": "",
+			"type": "default"
 		}
 	]
 }
