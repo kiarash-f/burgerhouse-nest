@@ -19,8 +19,8 @@ export class Order {
   id: number;
 
   @Index()
-  @Column()
-  userId: number;
+  @Column({ type: 'integer', nullable: true })
+  userId: number | null;
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'userId' })

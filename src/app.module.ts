@@ -13,6 +13,7 @@ import { OrdersModule } from './orders/orders.module';
 import { MediaModule } from './media/media.module';
 import { MenuModule } from './menu/menu.module';
 import { LoggerModule } from 'nestjs-pino';
+import { DineInModule } from './dinein/dinein.module';
 
 @Module({
   imports: [
@@ -85,6 +86,7 @@ import { LoggerModule } from 'nestjs-pino';
     OrdersModule,
     MediaModule,
     MenuModule,
+    DineInModule,
   ],
 })
 export class AppModule {}
