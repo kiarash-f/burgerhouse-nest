@@ -34,7 +34,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Passw0rd!\",\n  \"name\": \"John\",\n  \"lastname\": \"Doe\",\n  \"mobile\": \"09000000000\",\n  \"address\": \"Test Street\"\n}",
+							"raw": "{\n  \"email\": \"user3@example.com\",\n  \"password\": \"Passw0rd!\",\n  \"name\": \"John\",\n  \"lastname\": \"Doe\",\n  \"mobile\": \"09000000000\",\n  \"address\": \"Test Street\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -486,7 +486,7 @@
 								{
 									"key": "image",
 									"type": "file",
-									"src": "/C:/Users/USER/OneDrive/Pictures/conte.png"
+									"src": "/C:/Users/USER/OneDrive/Pictures/8410503.jpg"
 								}
 							]
 						},
@@ -683,6 +683,14 @@
 							]
 						},
 						"description": "Delete a user by id."
+					},
+					"response": []
+				},
+				{
+					"name": "Promote To Admin",
+					"request": {
+						"method": "GET",
+						"header": []
 					},
 					"response": []
 				}
@@ -1013,6 +1021,515 @@
 							"path": [
 								"orders",
 								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Digital Menu (Public)",
+			"item": [
+				{
+					"name": "Menu - All categories (active items only)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', () => pm.response.to.have.status(200));",
+									"const json = pm.response.json();",
+									"pm.test('Has categories array', () => pm.expect(json).to.have.property('categories').that.is.an('array'));",
+									"if (json.categories.length) {",
+									"  const c = json.categories[0];",
+									"  pm.test('Category has id/name/slug/items', () => {",
+									"    pm.expect(c).to.have.property('id');",
+									"    pm.expect(c).to.have.property('name');",
+									"    pm.expect(c).to.have.property('slug');",
+									"    pm.expect(c).to.have.property('items').that.is.an('array');",
+									"  });",
+									"  if (c.items.length) {",
+									"    const it = c.items[0];",
+									"    pm.test('Item has id/name/price/image/categoryId', () => {",
+									"      pm.expect(it).to.have.property('id');",
+									"      pm.expect(it).to.have.property('name');",
+									"      pm.expect(it).to.have.property('price');",
+									"      pm.expect(it).to.have.property('image');",
+									"      pm.expect(it).to.have.property('categoryId');",
+									"    });",
+									"  }",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/menu",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"menu"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Menu - Filter by category slug",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', () => pm.response.to.have.status(200));",
+									"const json = pm.response.json();",
+									"pm.test('All categories match slug', () => {",
+									"  (json.categories || []).forEach(c => pm.expect(c.slug).to.eql('burgers'));",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/menu?category=burgers",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"menu"
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "burgers"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Menu - Filter by categoryId",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', () => pm.response.to.have.status(200));",
+									"const json = pm.response.json();",
+									"pm.test('All categories match categoryId=1', () => {",
+									"  (json.categories || []).forEach(c => pm.expect(c.id).to.eql(1));",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/menu?categoryId=1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"menu"
+							],
+							"query": [
+								{
+									"key": "categoryId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Menu - Search + Price Range",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', () => pm.response.to.have.status(200));",
+									"const json = pm.response.json();",
+									"pm.test('Categories array exists', () => pm.expect(json).to.have.property('categories').that.is.an('array'));",
+									"pm.test('All items (if any) respect price range', () => {",
+									"  (json.categories || []).forEach(c => (c.items || []).forEach(i => {",
+									"    pm.expect(i.price).to.be.at.least(5);",
+									"    pm.expect(i.price).to.be.at.most(15);",
+									"  }));",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/menu?search=burger&minPrice=5&maxPrice=15",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"menu"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "burger"
+								},
+								{
+									"key": "minPrice",
+									"value": "5"
+								},
+								{
+									"key": "maxPrice",
+									"value": "15"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Menu - Include empty categories",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', () => pm.response.to.have.status(200));",
+									"const json = pm.response.json();",
+									"pm.test('Has categories array', () => pm.expect(json).to.have.property('categories').that.is.an('array'));",
+									"const hasEmpty = (json.categories || []).some(c => Array.isArray(c.items) && c.items.length === 0);",
+									"pm.test('Contains at least one empty category (if your data has any)', () => pm.expect(hasEmpty).to.be.a('boolean'));"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/menu?includeEmpty=true",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"menu"
+							],
+							"query": [
+								{
+									"key": "includeEmpty",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Dine-in Session",
+			"item": [
+				{
+					"name": "Start session (sets dine_sid cookie)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200', () => pm.response.code === 200);",
+									"const data = pm.response.json();",
+									"pm.environment.set('sessionId', data.sessionId || '');",
+									"pm.environment.set('tableId', String(data.tableId ?? ''));",
+									"console.log('Session started:', data);"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tt\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aWQiOjUsImlhdCI6MTc2MDA1NjM1NiwiZXhwIjoxNzYwMDcwNzU2fQ.5RNE8yqUr876PASuWSPpc27wuEu5fF0A4GpP0vJXvi0\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/dinein/session",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"dinein",
+								"session"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Dine-in Cart (session cookie required)",
+			"item": [
+				{
+					"name": "Add item to cart (dine-in)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"itemId\": 1,\n  \"quantity\": 3,\n  \"note\": \"no onion\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/cart/dinein",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"cart",
+								"dinein"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List cart (dine-in)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status 200', () => pm.response.code === 200);",
+									"const data = pm.response.json();",
+									"if (data.items && data.items.length) { pm.environment.set('cartItemId', data.items[0].id); }"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/cart/dinein",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"cart",
+								"dinein"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update cart row (quantity)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"quantity\": 3\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/cart/dinein/{{cartItemId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"cart",
+								"dinein",
+								"{{cartItemId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove cart row",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/cart/dinein/{{cartItemId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"cart",
+								"dinein",
+								"{{cartItemId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Clear cart (all rows)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/cart/dinein",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"cart",
+								"dinein"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Dine-in Order (submit w/o online payment)",
+			"item": [
+				{
+					"name": "Submit dine-in order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status 200', () => pm.response.code === 200);",
+									"const data = pm.response.json();",
+									"pm.environment.set('lastOrderId', data.orderId);",
+									"pm.environment.set('lastOrderStatus', data.status);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"note\": \"near the window\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/orders/dinein/submit",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"orders",
+								"dinein",
+								"submit"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin — Update Order Status",
+			"item": [
+				{
+					"name": "PATCH /orders/admin/:id/status",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"ACCEPTED\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/orders/admin/{{lastOrderId}}/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"orders",
+								"admin",
+								"{{lastOrderId}}",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/orders/admin/test-broadcast",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"orders",
+								"admin",
+								"test-broadcast"
 							]
 						}
 					},

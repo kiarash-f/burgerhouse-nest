@@ -45,4 +45,8 @@ export class UsersController {
   remove(@Param('id') id: string) {
     return this.usersService.remove(+id);
   }
+  @Patch(':id/promote')
+  promoteToAdmin(@Param('id') id: string) {
+    return this.usersService.promoteToAdmin(+id);
+  }
 }

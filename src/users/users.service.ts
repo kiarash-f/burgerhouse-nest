@@ -67,4 +67,10 @@ export class UsersService {
       .where('user.email = :email', { email })
       .getOne();
   }
+  async promoteToAdmin(userId: number): Promise<User> {
+    const user = await this.repo.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+    user.role = 'ADMIN';
+    return this.repo.save(user);
+  }
 }

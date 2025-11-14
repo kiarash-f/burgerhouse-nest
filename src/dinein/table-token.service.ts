@@ -8,7 +8,6 @@ export class TableTokenService {
   constructor(private readonly jwt: JwtService) {}
 
   sign(tableId: number, expiresIn?: string | number) {
-    // You’ll use this from an admin tool to pre-generate QR tokens
     return this.jwt.sign(
       { tid: tableId },
       expiresIn ? { expiresIn } : undefined,

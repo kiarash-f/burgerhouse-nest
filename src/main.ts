@@ -48,8 +48,6 @@ async function bootstrap() {
   const port = Number(process.env.APP_PORT || process.env.PORT || 3000);
   const host = process.env.APP_HOST || '0.0.0.0';
   
-
-  // Always print something to the console so you can see it started
   // eslint-disable-next-line no-console
   console.log(`Starting Nest on http://${host}:${port} ...`);
 
