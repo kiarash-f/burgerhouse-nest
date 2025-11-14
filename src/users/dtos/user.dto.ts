@@ -17,4 +17,5 @@ export class UserDto {
   address?: string;
   @Expose() createdAt: Date;
   @Expose() updatedAt: Date;
+  @Expose() role: string;
 }

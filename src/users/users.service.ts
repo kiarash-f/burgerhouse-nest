@@ -15,7 +15,7 @@ export class UsersService {
   ) {}
 
   async create(dto: CreateUserDto): Promise<User> {
-    const user = this.repo.create(dto);
+    const user = this.repo.create({ ...dto, role: 'USER' });
     return await this.repo.save(user);
   }
   async findAll(): Promise<User[]> {
@@ -57,6 +57,7 @@ export class UsersService {
       name,
       lastname,
       mobile: '',
+      role: 'USER',
     });
     return this.repo.save(user);
   }
