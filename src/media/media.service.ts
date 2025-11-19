@@ -43,7 +43,13 @@ export class MediaService {
     };
   }
 
-  async uploadItemImage(file: Express.Multer.File, folderHint?: string) {
+  // ------------------------------
+  // ITEM IMAGE UPLOAD
+  // ------------------------------
+  async uploadItemImage(
+    file: Express.Multer.File,
+    folderHint?: string,
+  ): Promise<Media> {
     if (!file?.buffer) throw new BadRequestException('Empty file');
     if (!/^image\//.test(file.mimetype)) {
       throw new BadRequestException('Only image uploads are allowed');
@@ -66,6 +72,15 @@ export class MediaService {
       publicId: public_id,
       variants,
     });
+
     return this.mediaRepo.save(media);
+  }
+
+  // ------------------------------
+  // CATEGORY IMAGE UPLOAD
+  // ------------------------------
+  async uploadCategoryImage(file: Express.Multer.File): Promise<Media> {
+    // Reuse the same logic, but put in a "categories" folder
+    return this.uploadItemImage(file, 'categories');
   }
 }

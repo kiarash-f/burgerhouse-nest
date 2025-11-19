@@ -136,15 +136,23 @@ export class ItemService {
     };
   }
 
-  // UPDATE BASIC: returns ItemDto
+  // UPDATE BASIC (including optional image): returns ItemDto
   async updateBasic(
     id: number,
-    patch: Partial<Item> & { categoryId?: number },
+    patch: {
+      name?: string;
+      desc?: string;
+      price?: number;
+      active?: boolean;
+      categoryId?: number;
+      image?: string | null; // <--- allow image update
+    },
   ) {
     const item = await this.repo.findOne({ where: { id } });
     if (!item) throw new NotFoundException('Item not found');
 
-    if (patch.categoryId) {
+    // Handle categoryId specially (convert to relation)
+    if (patch.categoryId !== undefined) {
       const category = await this.catRepo.findOne({
         where: { id: patch.categoryId },
       });
@@ -153,7 +161,13 @@ export class ItemService {
       delete (patch as any).categoryId;
     }
 
-    Object.assign(item, patch);
+    // Assign primitive fields, including image
+    if (patch.name !== undefined) item.name = patch.name;
+    if (patch.desc !== undefined) item.desc = patch.desc;
+    if (patch.price !== undefined) item.price = patch.price;
+    if (patch.active !== undefined) item.active = patch.active;
+    if (patch.image !== undefined) item.image = patch.image; // <--- this is the new part
+
     await this.repo.save(item);
 
     const updated = await this.repo.findOne({

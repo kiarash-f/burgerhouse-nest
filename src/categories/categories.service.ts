@@ -19,12 +19,14 @@ export class CategoriesService {
     return cat;
   }
 
-  async create(dto: CreateCategoryDto) {
+  // CREATE: allow optional image from controller
+  async create(dto: CreateCategoryDto & { image?: string }) {
     const cat = this.repo.create(dto);
     return this.repo.save(cat);
   }
 
-  async update(id: number, dto: UpdateCategoryDto) {
+  // UPDATE: allow optional image too
+  async update(id: number, dto: UpdateCategoryDto & { image?: string }) {
     const cat = await this.findOne(id);
     Object.assign(cat, dto);
     return this.repo.save(cat);

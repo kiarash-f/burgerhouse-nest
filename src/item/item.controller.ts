@@ -48,7 +48,7 @@ export class ItemController {
   @UseInterceptors(
     FileInterceptor('image', {
       storage: multer.memoryStorage(), // <-- switch to memory so we can stream to Cloudinary
-      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB guard (tweak as you like)
+      limits: { fileSize: 5 * 1024 * 1024 },
     }),
   )
   @Post()
@@ -83,8 +83,14 @@ export class ItemController {
   // Admin: update basic fields (no image change)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: multer.memoryStorage(),
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
+  )
   @Patch(':id')
-  updateItem(
+  async updateItem(
     @Param('id', ParseIntPipe) id: number,
     @Body()
     patch: {
@@ -94,8 +100,29 @@ export class ItemController {
       active?: boolean;
       categoryId?: number;
     },
+    @UploadedFile() file?: Express.Multer.File,
   ) {
-    return this.itemsService.updateBasic(id, patch);
+    // if no file, just do normal patch
+    if (!file) {
+      return this.itemsService.updateBasic(id, patch);
+    }
+
+    // validate file if present
+    if (!/^image\//.test(file.mimetype)) {
+      throw new BadRequestException('Only image uploads are allowed');
+    }
+
+    // upload new image
+    const media = await this.mediaService.uploadItemImage(
+      file,
+      `items/${patch.categoryId ?? 'misc'}`,
+    );
+
+    // pass image url to service 
+    return this.itemsService.updateBasic(id, {
+      ...patch,
+      image: media.variants.md.url,
+    });
   }
 
   // Admin: delete

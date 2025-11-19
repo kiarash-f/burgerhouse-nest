@@ -34,7 +34,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"user3@example.com\",\n  \"password\": \"Passw0rd!\",\n  \"name\": \"John\",\n  \"lastname\": \"Doe\",\n  \"mobile\": \"09000000000\",\n  \"address\": \"Test Street\"\n}",
+							"raw": "{\n    \"email\": \"kiaraash@example.com\",\n    \"password\": \"Passw0rd!\",\n    \"name\": \"John\",\n    \"lastname\": \"Doe\",\n    \"mobile\": \"09000000000\",\n    \"address\": \"Test Street\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -270,7 +270,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"token\": \"21e4c47900e8787ab99e7fca8a73cd9e6a57ef659483ff78bc95947f4e47399a\",\n  \"newPassword\": \"NewStrongPassword#123\"\n}",
+							"raw": "{\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjMsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc2MzU1OTU2NywiZXhwIjoxNzYzNTYwNDY3fQ.iCXnBLZeLrdqJMSST3weJRGcWOuRxIb4cx7Z-dPfiSM\",\n  \"newPassword\": \"NewStrongPassword#123\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -689,8 +689,19 @@
 				{
 					"name": "Promote To Admin",
 					"request": {
-						"method": "GET",
-						"header": []
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/users/31/promote",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								"31",
+								"promote"
+							]
+						}
 					},
 					"response": []
 				}
