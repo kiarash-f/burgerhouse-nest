@@ -143,40 +143,63 @@ export class ItemService {
       name?: string;
       desc?: string;
       price?: number;
-      active?: boolean;
-      categoryId?: number;
-      image?: string | null; // <--- allow image update
+      active?: string | boolean; // 👈 accept both, because of form-data
+      categoryId?: number | string;
+      image?: string | null;
     },
   ) {
     const item = await this.repo.findOne({ where: { id } });
     if (!item) throw new NotFoundException('Item not found');
 
-    // Handle categoryId specially (convert to relation)
+    // 1) Handle categoryId specially
     if (patch.categoryId !== undefined) {
+      const categoryIdNum =
+        typeof patch.categoryId === 'string'
+          ? Number(patch.categoryId)
+          : patch.categoryId;
+
       const category = await this.catRepo.findOne({
-        where: { id: patch.categoryId },
+        where: { id: categoryIdNum },
       });
       if (!category) throw new BadRequestException('Invalid category');
       (item as any).category = category;
-      delete (patch as any).categoryId;
     }
 
-    // Assign primitive fields, including image
-    if (patch.name !== undefined) item.name = patch.name;
-    if (patch.desc !== undefined) item.desc = patch.desc;
-    if (patch.price !== undefined) item.price = patch.price;
-    if (patch.active !== undefined) item.active = patch.active;
-    if (patch.image !== undefined) item.image = patch.image; // <--- this is the new part
+    // 2) Simple scalar fields: only overwrite if defined
+    if (patch.name !== undefined) {
+      item.name = patch.name;
+    }
+    if (patch.desc !== undefined) {
+      item.desc = patch.desc;
+    }
+    if (patch.price !== undefined) {
+      // price comes from form-data → string
+      item.price =
+        typeof patch.price === 'string' ? Number(patch.price) : patch.price;
+    }
+    if (patch.image !== undefined) {
+      item.image = patch.image;
+    }
 
-    await this.repo.save(item);
+    // 3) ⭐ Proper handling for active
+    if (patch.active !== undefined) {
+      if (typeof patch.active === 'string') {
+        const lower = patch.active.toLowerCase().trim();
+        if (lower === 'true' || lower === '1') {
+          item.active = true;
+        } else if (lower === 'false' || lower === '0') {
+          item.active = false;
+        } else {
+          // fallback: treat any other string as false (or throw if you prefer)
+          item.active = false;
+        }
+      } else {
+        // already boolean
+        item.active = !!patch.active;
+      }
+    }
 
-    const updated = await this.repo.findOne({
-      where: { id },
-      relations: ['category', 'media'], // <-- remove 'media' if not present
-    });
-    if (!updated) throw new NotFoundException('Item not found');
-
-    return toItemDto(updated);
+    return this.repo.save(item);
   }
 
   // DELETE: returns success object

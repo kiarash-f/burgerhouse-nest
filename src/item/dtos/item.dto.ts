@@ -29,6 +29,5 @@ export class ItemDto {
   };
   @Expose() active!: boolean;
   @Expose() categoryId!: number | null;
-
   @Expose() createdAt!: Date;
 }

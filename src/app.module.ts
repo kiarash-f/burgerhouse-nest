@@ -47,7 +47,7 @@ import { DineInModule } from './dinein/dinein.module';
                   translateTime: 'SYS:standard',
                   crlf: true,
                   messageFormat:
-                    '{req.method} {req.url} -> {res.statusCode} ({responseTime}ms) {context}',
+                    '{req.method} {req.url} -> {res.statusCode} ({responseTime}ms) {context} {msg}',
                 },
               },
 

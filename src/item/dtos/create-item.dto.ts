@@ -26,4 +26,5 @@ export class CreateItemDto {
     value === 'true' ? true : value === 'false' ? false : value,
   )
   active?: boolean;
+  
 }

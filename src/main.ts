@@ -7,13 +7,14 @@ import { Logger } from 'nestjs-pino';
 import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
-  // bufferLogs lets nestjs-pino take over cleanly once resolved
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
   });
 
   // Use nestjs-pino logger that you registered in AppModule
   app.useLogger(app.get(Logger));
+  const logger = app.get(Logger);
+  logger.log('PINO-TEST: app logger working');
 
   // Middlewares
   app.use(cookieParser());
@@ -47,7 +48,7 @@ async function bootstrap() {
   // Use APP_PORT if present; fall back to PORT then 3000
   const port = Number(process.env.APP_PORT || process.env.PORT || 3000);
   const host = process.env.APP_HOST || '0.0.0.0';
-  
+
   // eslint-disable-next-line no-console
   console.log(`Starting Nest on http://${host}:${port} ...`);
 

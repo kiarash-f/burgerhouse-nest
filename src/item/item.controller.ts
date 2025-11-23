@@ -13,6 +13,7 @@ import {
   Patch,
   Delete,
   Query,
+  Logger,
 } from '@nestjs/common';
 import { CreateItemDto } from './dtos/create-item.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -22,13 +23,14 @@ import { RolesGuard } from '../guards/roles.guard';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { Roles } from '../decorators/roles.decorator';
 import { ItemQueryDto } from './dtos/item-query.dto';
-import { MediaService } from '../media/media.service'; // <-- add this
+import { MediaService } from '../media/media.service';
 
 @Controller('items')
 export class ItemController {
+  private readonly logger = new Logger(ItemController.name);
   constructor(
     private readonly itemsService: ItemService,
-    private readonly mediaService: MediaService, // <-- inject
+    private readonly mediaService: MediaService,
   ) {}
 
   // Public
@@ -102,6 +104,7 @@ export class ItemController {
     },
     @UploadedFile() file?: Express.Multer.File,
   ) {
+    console.log('RAW PATCH PAYLOAD >>>', patch);
     // if no file, just do normal patch
     if (!file) {
       return this.itemsService.updateBasic(id, patch);
@@ -118,7 +121,7 @@ export class ItemController {
       `items/${patch.categoryId ?? 'misc'}`,
     );
 
-    // pass image url to service 
+    // pass image url to service
     return this.itemsService.updateBasic(id, {
       ...patch,
       image: media.variants.md.url,
