@@ -89,22 +89,24 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   async googleCallback(
     @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
+    @Res() res: Response, // CHANGED: no passthrough, we fully control the response
   ) {
     const { userId } = req.user as { userId: number; email: string };
 
+    // CHANGED: issue tokens, set cookie, then redirect instead of returning JSON
     const tokens = await this.auth.issueTokens(userId);
 
+    // keep behavior consistent with signin/signup: refresh token in cookie
     res.cookie('refresh_token', tokens.refreshToken, buildCookieOpts(this.cfg));
 
-    const user = await this.users.findOne(userId);
+    // determine frontend URL (e.g. http://localhost:3001)
+    const frontendUrl =
+      this.cfg.get<string>('FRONTEND_URL') || 'http://localhost:3001';
 
-    const safeUser = toUserDto(user);
+    // we send accessToken via query so frontend can store it like normal signin
+    const redirectUrl = `${frontendUrl}/auth/google/callback?accessToken=${tokens.accessToken}`;
 
-    return {
-      user: safeUser,
-      accessToken: tokens.accessToken,
-    };
+    return res.redirect(redirectUrl);
   }
 
   // -------- Token Refresh / Logout --------
