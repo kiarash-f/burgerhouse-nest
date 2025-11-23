@@ -79,34 +79,52 @@ export class AuthController {
   }
 
   // -------- Google OAuth --------
+
   @Get('google')
   @UseGuards(AuthGuard('google'))
   googleLogin() {
-    // Passport Google redirect
+    // Passport Google redirect (unchanged)
   }
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleCallback(
     @Req() req: Request,
-    @Res() res: Response, // CHANGED: no passthrough, we fully control the response
+    @Res() res: Response, // CHANGE: removed { passthrough: true } so we fully control the response
   ) {
-    const { userId } = req.user as { userId: number; email: string };
-
-    // CHANGED: issue tokens, set cookie, then redirect instead of returning JSON
-    const tokens = await this.auth.issueTokens(userId);
-
-    // keep behavior consistent with signin/signup: refresh token in cookie
-    res.cookie('refresh_token', tokens.refreshToken, buildCookieOpts(this.cfg));
-
-    // determine frontend URL (e.g. http://localhost:3001)
+    // NEW: figure out frontend URL once (used for both success and error)
     const frontendUrl =
       this.cfg.get<string>('FRONTEND_URL') || 'http://localhost:3001';
 
-    // we send accessToken via query so frontend can store it like normal signin
-    const redirectUrl = `${frontendUrl}/auth/google/callback?accessToken=${tokens.accessToken}`;
+    try {
+      // NEW: explicit failure handling if Google auth fails and no user is attached
+      if (!req.user) {
+        const errorRedirect = `${frontendUrl}/auth/google/error?reason=no_user`;
+        return res.redirect(errorRedirect);
+      }
 
-    return res.redirect(redirectUrl);
+      const { userId } = req.user as { userId: number; email: string };
+
+      // SAME LOGIC: issue tokens for this user
+      const tokens = await this.auth.issueTokens(userId);
+
+      // SAME BEHAVIOR AS signin/signup: set refresh_token as HTTP-only cookie
+      res.cookie(
+        'refresh_token',
+        tokens.refreshToken,
+        buildCookieOpts(this.cfg),
+      );
+
+      // CHANGE: instead of returning JSON from backend, redirect to frontend
+      // Frontend will receive accessToken in query and store it like normal signin
+      const successRedirect = `${frontendUrl}/auth/google/callback?accessToken=${tokens.accessToken}`;
+
+      return res.redirect(successRedirect);
+    } catch (err) {
+      // NEW: server-side error fallback → redirect to a frontend error page
+      const errorRedirect = `${frontendUrl}/auth/google/error?reason=server_error`;
+      return res.redirect(errorRedirect);
+    }
   }
 
   // -------- Token Refresh / Logout --------
