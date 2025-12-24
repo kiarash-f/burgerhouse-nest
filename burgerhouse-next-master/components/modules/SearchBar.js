@@ -14,8 +14,8 @@ import { HiOutlineTrash } from "react-icons/hi";
 const customTheme = createTheme({
   drawer: {
     root: {
-      base: "fixed z-40 overflow-y-auto bg-gray-200 p-4 transition-all duration-600 rounded-b-md",
-      backdrop: "bg-night/80",
+      base: "fixed z-40 overflow-y-auto bg-gray-200 dark:bg-gray-200 p-4 transition-all duration-600 rounded-b-md",
+      backdrop: "bg-night/80 dark:bg-nigh/80",
       position: {
         top: {
           on: "md:w-[50%] mx-auto sm:w-[80%] w-full",
@@ -26,9 +26,9 @@ const customTheme = createTheme({
     header: {
       inner: {
         closeButton:
-          "absolute end-2.5 top-2.5 flex h-8 w-8 items-center justify-center rounded-lg bg-transparent text-sm text-gray-700 hover:bg-gray-400 hover:text-gray-900 cursor-pointer transition-colors duration-300",
+          "absolute end-2.5 top-2.5 flex h-8 w-8 items-center justify-center rounded-lg bg-transparent text-sm text-gray-700 dark:text-gray-700 hover:bg-gray-400 hover:text-gray-900 dark:hover:bg-gray-400 dark:hover:text-gray-900 cursor-pointer transition-colors duration-300",
         titleIcon: "h-5 w-5",
-        titleText: "mb-4 inline-flex items-center text-sm text-gray-700",
+        titleText: "mb-4 inline-flex items-center text-sm text-gray-700 dark:text-gray-700",
       },
     },
   },
@@ -37,14 +37,14 @@ const customTheme = createTheme({
       input: {
         base: "focus:ring-0",
         colors: {
-          gray: "text-gray-900 border-night/20 bg-inherit hover:border-night/50 focus:border-night transition-all duration-300 ease-in-out  placeholder:text-night/30",
+          gray: "text-gray-900 dark:text-gray-900 border-night/20 dark:border-night/20 bg-inherit dark:bg-inherit dark:hover:border-night/50 hover:border-night/50 focus:border-night dark:focus:border-night transition-all duration-300 ease-in-out  placeholder:text-night/30",
         },
       },
     },
   },
   button: {
     outlineColor: {
-      dark: "bg-transparent hover:bg-transparent hover:text-night text-night/75 hover:border-none border-none focus:ring-0 cursor-pointer transition-colors duration-300",
+      dark: "bg-transparent dark:bg-transparent dark:hover:bg-transparent hover:bg-transparent hover:text-night text-night/75 dark:text-night dark:hover:text-night/75 dark:hover:border-none hover:border-none border-none focus:ring-0 cursor-pointer transition-colors duration-300",
     },
   },
 });

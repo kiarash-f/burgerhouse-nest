@@ -13,16 +13,33 @@
   --color-saffron: #f4c431;
   --color-night: #111111;
   --color-platinum: #e5e4e2;
-  --color-silver: #c0c0c0;
+  --color-silver: #cecece;
   --font-soraya: "Soraya";
 }
 
 @layer components {
   .btn {
-    @apply py-2 px-2 cursor-pointer transition-colors duration-400 ease-in-out text-sm bg-night/45 text-saffron border border-platinum/50 hover:text-inherit hover:bg-saffron/30 rounded-md hover:border-platinum/30;
+    @apply p-2 cursor-pointer transition-colors duration-400 ease-in-out text-sm bg-night/45 text-saffron border border-platinum/50 hover:text-inherit hover:bg-saffron/30 rounded-md hover:border-platinum/30 flex items-center justify-center;
   }
   .submitBtn {
-    @apply text-sm cursor-pointer py-3 px-2 transition-all duration-400 ease-in-out bg-transparent w-full border border-night/50 rounded-md hover:border-night;
+    @apply text-sm cursor-pointer py-3 px-2 transition-all duration-400 ease-in-out bg-transparent w-full border border-night/50 rounded-md hover:border-night text-night/80 disabled:cursor-not-allowed;
+  }
+
+  .table-body td {
+    @apply px-4 py-4 text-center;
+  }
+
+  .custom-radio {
+    @apply appearance-none w-4 h-4 border-2 border-night rounded cursor-pointer transition-all duration-200;
+  }
+
+  .custom-radio:checked {
+    @apply border-night bg-night;
+  }
+
+  .custom-radio:checked::after {
+    content: "";
+    @apply block w-2 h-2 bg-check-icon rounded-full mx-auto bg-center bg-no-repeat  my-0.5;
   }
 }
 

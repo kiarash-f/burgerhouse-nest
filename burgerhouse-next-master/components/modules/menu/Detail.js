@@ -1,15 +1,62 @@
+import useCart from "@/components/hooks/useCart";
 import NumbersWithComma from "@/components/utils/NumbersWithComma";
 import Image from "next/image";
 import React, { useState } from "react";
 import { FaPlus, FaMinus } from "react-icons/fa";
+import { Loader } from "../Loading";
+import toast from "react-hot-toast";
+import { useCurrentUser } from "@/components/context/GetUserContext";
+import Cookies from "js-cookie";
+import useDineInCart from "@/components/hooks/useDineInCart";
 
 function Detail({ foodInfo }) {
+  const { token } = useCurrentUser();
+  const sessionId = Cookies.get("dine_sessionId") || "";
+  const tableId = Cookies.get("dine_tableId") || "";
+
+  const { addToCartItem, addToCartPending } = useCart(token);
+  const { addToDineInCartItem, addToDineInCartPending } =
+    useDineInCart(sessionId);
   const [number, setNumber] = useState(1);
+
+  const addToCartHandler = async () => {
+    if (sessionId) {
+      const newItem = {
+        sessionId: sessionId,
+        itemId: foodInfo?.id,
+        quantity: number,
+        note: "",
+        tableId: Number(tableId),
+      };
+
+      await addToDineInCartItem(newItem, {
+        onSuccess: () => {
+          toast.success(`آیتم ${foodInfo?.name} به سبد خرید اضافه شد`);
+        },
+      });
+      console.log("newItem => ", newItem);
+    } else {
+      if (!token) return toast.error("لطفا ابتدا وارد حساب شوید.");
+
+      const newItem = {
+        itemId: foodInfo?.id,
+        quantity: number,
+        note: "",
+      };
+
+      await addToCartItem(newItem, {
+        onSuccess: () => {
+          toast.success(`آیتم ${foodInfo?.name} به سبد خرید اضافه شد`);
+        },
+      });
+    }
+  };
+
   return (
     <div className="grid grid-cols-12 gap-3 ">
       <div className="sm:col-span-6 col-span-12 ">
         <Image
-          src={foodInfo.src}
+          src={foodInfo.image}
           alt="FoodInfo"
           width="300"
           height="300"
@@ -20,14 +67,16 @@ function Detail({ foodInfo }) {
       </div>
       <div className="sm:col-span-6 col-span-12 flex flex-col justify-between max-sm:gap-y-5">
         <p>{foodInfo.name}</p>
-        <div className="space-y-0.5">
+        <div className="leading-7">
           <p className="text-xs">مواد تشکیل دهنده :</p>
-          <p className="text-[10px]">{foodInfo.ingredients}</p>
+          <p className="text-[10px]">{foodInfo.desc}</p>
         </div>
         <div>
-          <p>
-            <span className="">{NumbersWithComma(foodInfo.price)}</span>
-            <span className="">تومان</span>
+          <p className="min-[400px]:text-lg text-base flex items-center gap-x-2">
+            <span className="text-lg sm:text-xl">
+              {NumbersWithComma(foodInfo?.price)}
+            </span>
+            <span className="opacity-80 text-xs">تومان</span>
           </p>
         </div>
         <div className="flex justify-between items-center  ">
@@ -42,8 +91,15 @@ function Detail({ foodInfo }) {
               onClick={() => setNumber(number + 1)}
             />
           </div>
-          <button className="btn text-[11px] md:text-xs">
-            افزودن به سبد خرید
+          <button
+            className="btn text-[11px] md:text-xs"
+            onClick={addToCartHandler}
+          >
+            {addToCartPending || addToDineInCartPending ? (
+              <Loader />
+            ) : (
+              "افزودن به سبد خرید"
+            )}
           </button>
         </div>
       </div>

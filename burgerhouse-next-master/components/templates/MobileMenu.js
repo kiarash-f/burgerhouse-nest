@@ -17,23 +17,28 @@ import {
   IoTimeOutline,
 } from "react-icons/io5";
 import { HiOutlineUsers } from "react-icons/hi";
+import { useCurrentUser } from "../context/GetUserContext";
+import { Loader } from "../modules/Loading";
+import toast from "react-hot-toast";
+import Link from "next/link";
 
 const customTheme = createTheme({
   drawer: {
     root: {
-      base: "bg-neutral-900 transition-all duration-600",
-      backdrop: "bg-neutral-900/50",
+      base: "bg-neutral-900 dark:bg-neutral-900 transition-all duration-600",
+      backdrop: "bg-neutral-900/50 dark:bg-neutral-900/50",
       position: {
         right: {
-          on: "min-[300px]:max-sm:w-72 sm:max-md:w-76 md:w-80 border-l border-platinum/40",
+          on: "min-[300px]:max-sm:w-72 sm:max-md:w-76 md:w-80 border-l border-platinum/40 dark:border-platinum/40",
         },
       },
     },
     header: {
       inner: {
         closeButton:
-          "text-white-smoke/50 hover:bg-white-smoke/40 cursor-pointer transition-colors duration-300",
-        titleText: "text-sm font-medium text-white-smoke/50",
+          "text-white-smoke/50 hover:bg-white-smoke/40 dark:text-white-smoke/50 dark:hover:bg-white-smoke/40 cursor-pointer transition-colors duration-300",
+        titleText:
+          "text-sm font-medium text-white-smoke/50 dark:text-white-smoke/50",
         titleIcon: "h-5 w-5",
       },
     },
@@ -44,38 +49,42 @@ const customTheme = createTheme({
         off: "w-full",
       },
       inner:
-        "h-full overflow-y-auto overflow-x-hidden rounded-lg bg-platinum/10 px-3 py-4 mt-6 w-full",
+        "h-full overflow-y-auto overflow-x-hidden rounded-lg bg-platinum/10 dark:bg-platinum/10 px-3 py-4 mt-6 w-full",
     },
   },
 });
+
+const headerList = [
+  {
+    id: 1,
+    name: "صفحه اصلی",
+    href: "/",
+    icon: <IoHomeOutline className="w-5 h-5" />,
+  },
+  {
+    id: 2,
+    name: "منو",
+    href: "/menu/breakfast",
+    icon: <IoRestaurantOutline className="w-5 h-5" />,
+    sectionMatch: "/menu",
+  },
+  {
+    id: 3,
+    name: "درباره ما",
+    href: "/about",
+    icon: <HiOutlineUsers className="w-5 h-5" />,
+  },
+  {
+    id: 4,
+    name: "ارتباط با ما",
+    href: "/contact",
+    icon: <IoTimeOutline className="w-5 h-5" />,
+  },
+];
+
 function MobileMenu({ isDrawerOpen, setIsDrawerOpen, setIsModalOpen }) {
-  const headerList = [
-    {
-      id: 1,
-      name: "صفحه اصلی",
-      href: "/",
-      icon: <IoHomeOutline className="w-5 h-5" />,
-    },
-    {
-      id: 2,
-      name: "منو",
-      href: "/menu/breakfast",
-      icon: <IoRestaurantOutline className="w-5 h-5" />,
-      sectionMatch: "/menu",
-    },
-    {
-      id: 3,
-      name: "درباره ما",
-      href: "/about",
-      icon: <HiOutlineUsers className="w-5 h-5" />,
-    },
-    {
-      id: 4,
-      name: "ارتباط با ما",
-      href: "/contact",
-      icon: <IoTimeOutline className="w-5 h-5" />,
-    },
-  ];
+  const { user, isLoading, isError, token } = useCurrentUser();
+
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024) {
@@ -91,6 +100,12 @@ function MobileMenu({ isDrawerOpen, setIsDrawerOpen, setIsModalOpen }) {
       setIsDrawerOpen(false);
     }
   });
+
+  if (isError) {
+    toast.error("اطلاعات کاربری یافت نشد");
+    return;
+  }
+
   return (
     <ThemeProvider theme={customTheme}>
       <Drawer
@@ -100,34 +115,28 @@ function MobileMenu({ isDrawerOpen, setIsDrawerOpen, setIsModalOpen }) {
         ref={sidebarRef}
       >
         <DrawerHeader title="خانه برگر" />
-        {/* {!token ? (
+        {!token ? (
           <button
-            className="w-full cursor-pointer text-xs py-4 rounded-lg bg-almond-cookie dark:bg-dark-cerulean mt-2 hover:bg-golden-sand dark:hover:bg-purple-plumeria transition-colors duration-300"
+            className="w-full cursor-pointer text-sm py-4 rounded-md btn mt-2 text-white-smoke/80 transition-colors duration-300"
             onClick={() => setIsModalOpen(true)}
           >
-            ورود یا ثبت نام
+            ورود / عضویت
           </button>
         ) : (
           <Link
             onClick={() => setIsDrawerOpen(false)}
-            to={user?.role === "student" ? "/student" : "/admin"}
-            className="w-full cursor-pointer text-xs py-4 rounded-lg bg-almond-cookie dark:bg-dark-cerulean mt-2 hover:bg-golden-sand dark:hover:bg-purple-plumeria transition-colors duration-300 flex items-center justify-center"
+            href={user?.role === "USER" ? "/user" : "/admin"}
+            className="w-full cursor-pointer text-sm py-4 rounded-md btn mt-2 text-white-smoke/80 transition-colors duration-300"
           >
             {isLoading ? (
               <Loader />
-            ) : user?.role === "student" ? (
+            ) : user?.role === "USER" ? (
               "پنل کاربری"
             ) : (
               "پیشخوان"
             )}
           </Link>
-        )} */}
-        <button
-          className="w-full cursor-pointer text-sm py-4 rounded-md btn mt-2 text-white-smoke/80 transition-colors duration-300"
-          onClick={() => setIsModalOpen(true)}
-        >
-          ورود / عضویت
-        </button>
+        )}
 
         <DrawerItems>
           <Sidebar aria-label="منوی کناری">

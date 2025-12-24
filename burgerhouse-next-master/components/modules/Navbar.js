@@ -1,30 +1,118 @@
 import Image from "next/image";
 import Link from "next/link";
 import NavLink from "../templates/NavLink";
-import { HiOutlineShoppingBag } from "react-icons/hi2";
+import { HiOutlinePower, HiOutlineShoppingBag } from "react-icons/hi2";
 import { useEffect, useState } from "react";
 import Modal from "../templates/Modal";
-import { IoMenuOutline } from "react-icons/io5";
+import { IoFastFoodOutline, IoMenuOutline } from "react-icons/io5";
 import MobileMenu from "../templates/MobileMenu";
 import SearchBar from "./SearchBar";
 import { BsSearch } from "react-icons/bs";
 import ShoppingCart from "../templates/ShoppingCart";
 import { usePathname } from "next/navigation";
 import AuthContainer from "../features/auth/AuthContainer";
+import { useCurrentUser } from "../context/GetUserContext";
+import Logout from "../features/auth/logout/Logout";
+import toast from "react-hot-toast";
+import { Loader } from "./Loading";
+import {
+  createTheme,
+  Dropdown,
+  DropdownDivider,
+  DropdownHeader,
+  DropdownItem,
+  ThemeProvider,
+} from "flowbite-react";
+import { PiUser } from "react-icons/pi";
+import { FiUsers } from "react-icons/fi";
+import { BiCategoryAlt } from "react-icons/bi";
+import { TfiBarChartAlt } from "react-icons/tfi";
+import { GrMoney } from "react-icons/gr";
+import useCart from "../hooks/useCart";
+
+const customTheme = createTheme({
+  dropdown: {
+    arrowIcon: "",
+    content: "w-60",
+    floating: {
+      style: {
+        auto: "border border-platinum/50 bg-silver dark:bg-silver dark:text-night text-night dark:border-platinum/50 dark:bg-silver dark:text-night",
+      },
+      header:
+        "flex items-center gap-x-2 px-0 w-[90%] mx-auto py-2 text-xs text-night/80 dark:text-night/80",
+      divider: "bg-night/20 dark:bg-night/20",
+      item: {
+        icon: "ml-2 w-5 h-5",
+        base: "flex w-[90%] mx-auto my-3 rounded-md cursor-pointer items-center justify-start px-0 py-3 text-sm text-inherit hover:bg-platinum/70 focus:bg-platinum/70 focus:outline-none dark:text-inherit dark:hover:bg-platinum/70 dark:hover:text-night dark:focus:bg-platinum/70 dark:focus:text-night transition-all duration-400 ease-in-out",
+      },
+    },
+  },
+  button: {
+    color: {
+      default:
+        "cursor-pointer bg-transparent dark:bg-transparent hover:bg-saffron/30 dark:hover:bg-saffron/30 transition-colors duration-300 focus:ring-0 dark:text-inherit px-1 lg:px-3 border border-platinum/50 rounded-md hover:border-platinum/30",
+    },
+  },
+});
+
+const adminDashboard = [
+  { id: 1, title: "پیشخوان", icon: TfiBarChartAlt, href: "/admin/dashboard" },
+  {
+    id: 2,
+    title: "دسته بندی ها",
+    icon: BiCategoryAlt,
+    href: "/admin/categories",
+  },
+  { id: 3, title: "آیتم ها", icon: IoFastFoodOutline, href: "/admin/items" },
+  { id: 4, title: "کاربران", icon: FiUsers, href: "/admin/users" },
+  {
+    id: 5,
+    title: "جزئیات حساب",
+    icon: GrMoney,
+    href: "/admin/payments",
+  },
+];
+
+const userDashboard = [
+  { id: 1, title: "پنل کاربری", href: "/user/dashboard", icon: TfiBarChartAlt },
+  {
+    id: 2,
+    title: "سفارش های من",
+    href: "/user/orders",
+    icon: IoFastFoodOutline,
+  },
+  {
+    id: 3,
+    title: "پرداخت های من",
+    href: "/user/payments",
+    icon: GrMoney,
+  },
+];
+
+const headerList = [
+  { id: 1, name: "صفحه اصلی", href: "/" },
+  { id: 2, name: "منو", href: "/menu", sectionMatch: "/menu" },
+  { id: 3, name: "درباره ما", href: "/about" },
+  { id: 4, name: "ارتباط با ما", href: "/contact" },
+];
 
 function Navbar() {
   const pathname = usePathname();
+  const { user, isLoading, isError, token, setToken, isTokenChecked } =
+    useCurrentUser();
+  const {
+    cartItems,
+    isLoading: cartItemsLoading,
+    isError: cartItemsIsError,
+  } = useCart();
+  const { isPending, logout } = Logout(setToken);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isShoppingCartOpen, setIsShoppingCartOpen] = useState(false);
   const [isSearchBarOpen, setIsSearchBarOpen] = useState(false);
-  const headerList = [
-    { id: 1, name: "صفحه اصلی", href: "/" },
-    { id: 2, name: "منو", href: "/menu/breakfast", sectionMatch: "/menu" },
-    { id: 3, name: "درباره ما", href: "/about" },
-    { id: 4, name: "ارتباط با ما", href: "/contact" },
-  ];
+
+  const cartCount = cartItems?.totals?.count;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -39,6 +127,54 @@ function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [pathname]);
+
+  const logoutHandler = async () => {
+    await logout();
+  };
+
+  const renderUserMenu = () => {
+    if (!user) return null;
+
+    if (user?.role === "USER") {
+      return (
+        <>
+          {userDashboard?.map((dashboard) => (
+            <DropdownItem
+              key={dashboard.id}
+              as={Link}
+              href={dashboard.href}
+              icon={dashboard.icon}
+            >
+              {dashboard.title}
+            </DropdownItem>
+          ))}
+        </>
+      );
+    }
+
+    return (
+      <>
+        {adminDashboard?.map((dashboard) => (
+          <DropdownItem
+            key={dashboard.id}
+            as={Link}
+            href={dashboard.href}
+            icon={dashboard.icon}
+          >
+            {dashboard.title}
+          </DropdownItem>
+        ))}
+      </>
+    );
+  };
+
+  useEffect(() => {
+    if (isError) {
+      toast.error("اطلاعات کاربری یافت نشد");
+    }
+  }, [isError]);
+
+  if (!isTokenChecked) return;
 
   return (
     <>
@@ -100,17 +236,59 @@ function Navbar() {
               <BsSearch className="md:w-6 md:h-6 w-5 h-5" />
             </button>
             <button
-              className="cursor-pointer"
+              className="relative cursor-pointer"
               onClick={() => setIsShoppingCartOpen(!isShoppingCartOpen)}
             >
-              <HiOutlineShoppingBag className="md:w-8 md:h-8 w-6 h-6" />
+              {isLoading ? (
+                <Loader />
+              ) : (
+                <>
+                  <HiOutlineShoppingBag className="md:w-8 md:h-8 w-6 h-6" />
+
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-saffron text-night text-[11px] w-5 h-5 flex items-center justify-center rounded-full">
+                      {cartCount}
+                    </span>
+                  )}
+                </>
+              )}
             </button>
-            <button
-              className="btn md:flex hidden"
-              onClick={() => setIsModalOpen(!isModalOpen)}
-            >
-              ورود/عضویت
-            </button>
+            {!token ? (
+              <button
+                className="btn md:flex hidden"
+                onClick={() => setIsModalOpen(!isModalOpen)}
+              >
+                ورود/عضویت
+              </button>
+            ) : isLoading ? (
+              <Loader />
+            ) : (
+              <ThemeProvider theme={customTheme}>
+                <Dropdown
+                  label={<PiUser className="w-5 h-5" />}
+                  placement="bottom-start"
+                  size="sm"
+                  dismissOnClick={true}
+                >
+                  <DropdownHeader>
+                    <div className="flex items-center gap-x-1">
+                      <span>{user?.name}</span>
+                      <span>{user?.lastname}</span>
+                    </div>
+                  </DropdownHeader>
+                  <DropdownDivider />
+                  {renderUserMenu()}
+                  <DropdownDivider />
+                  <DropdownItem
+                    icon={HiOutlinePower}
+                    onClick={logoutHandler}
+                    className="hover:bg-red-600! dark:hover:bg-red-800! my-1.5! hover:text-white-smoke!"
+                  >
+                    {isPending ? <Loader /> : "خروج"}
+                  </DropdownItem>
+                </Dropdown>
+              </ThemeProvider>
+            )}
           </div>
         </nav>
       </header>

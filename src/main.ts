@@ -1,4 +1,3 @@
-// src/main.ts
 import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
@@ -13,8 +12,6 @@ async function bootstrap() {
 
   // Use nestjs-pino logger that you registered in AppModule
   app.useLogger(app.get(Logger));
-  const logger = app.get(Logger);
-  logger.log('PINO-TEST: app logger working');
 
   // Middlewares
   app.use(cookieParser());
@@ -40,7 +37,7 @@ async function bootstrap() {
   // CORS for your frontend (adjust origin as needed)
   app.enableCors({
     origin: true, // allow any http origin (localhost, 127.0.0.1, etc.)
-    credentials: false,
+    credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   });

@@ -28,7 +28,8 @@ export default function App({ Component, pageProps }) {
             toastOptions={{
               style: {
                 backgroundColor: "#111111",
-                color: "e5e4e2",
+                color: "#c0c0c0",
+                fontSize: "14px",
               },
             }}
           />

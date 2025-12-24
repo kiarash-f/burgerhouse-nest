@@ -25,7 +25,7 @@ function Modal({ onClose, children, title, size = false }) {
             stiffness: 200,
             damping: 18,
           }}
-          className={`rounded-lg bg-silver text-night/85 p-4 shadow-lg overflow-y-auto
+          className={`rounded-lg bg-silver text-night/80 p-4 shadow-lg shadow-platinum/5 overflow-y-auto
               ${
                 size
                   ? "sm:w-[calc(100vw-15%)] md:max-w-2xl max-h-[calc(100vh-15%)]"
@@ -34,7 +34,7 @@ function Modal({ onClose, children, title, size = false }) {
         >
           <div
             className={`flex items-center justify-between  pb-2  ${
-              !size && "border-b border-night mb-6"
+              !size && "border-b border-night/40 mb-6"
             } `}
           >
             {title ? (
@@ -57,7 +57,7 @@ function Modal({ onClose, children, title, size = false }) {
 
             <button
               onClick={onClose}
-              className="cursor-pointer bg-inherit transition-colors duration-300 hover:bg-gray-500 rounded-lg p-1"
+              className="cursor-pointer bg-inherit transition-colors duration-300 hover:bg-gray-400 rounded-lg p-1"
             >
               <HiOutlineX className="w-5 h-5" />
             </button>

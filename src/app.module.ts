@@ -1,4 +1,4 @@
-// src/app.module.ts
+
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppConfigModule } from './config';
@@ -14,6 +14,7 @@ import { MediaModule } from './media/media.module';
 import { MenuModule } from './menu/menu.module';
 import { LoggerModule } from 'nestjs-pino';
 import { DineInModule } from './dinein/dinein.module';
+import { ReviewModule } from './review/review.module';
 
 @Module({
   imports: [
@@ -87,6 +88,7 @@ import { DineInModule } from './dinein/dinein.module';
     MediaModule,
     MenuModule,
     DineInModule,
+    ReviewModule,
   ],
 })
 export class AppModule {}

@@ -25,9 +25,9 @@ export default function NavLink({
 
   if (isMobile) {
     const activeClass =
-      "bg-saffron/20 text-saffron hover:bg-saffron/30 transition-colors duration-300";
+      "bg-saffron/20 dark:bg-saffron/20 dark:text-saffron text-saffron hover:bg-saffron/30 dark:hover:bg-saffron/30 transition-colors duration-300";
     const defaultClass =
-      "text-white-smoke/80 hover:bg-platinum/20 transition-colors duration-300";
+      "text-white-smoke/80 dark:text-white-smoke/80 hover:bg-platinum/20 dark:hover:bg-platinum/20 transition-colors duration-300";
 
     return (
       <Link href={href} passHref>
@@ -48,7 +48,7 @@ export default function NavLink({
     <Link
       href={href}
       className={`relative px-2 py-1 transition-colors duration-400 ${
-        isActive ? "text-saffron hover:text-saffron" : "hover:text-white-smoke"
+        isActive ? "text-saffron hover:text-saffron dark:text-saffron dark:hover:text-saffron" : "hover:text-white-smoke dark:hover:text-white-smoke"
       }`}
     >
       <span>{children}</span>
@@ -56,7 +56,7 @@ export default function NavLink({
       {isActive && (
         <motion.span
           layoutId="underline-offset"
-          className="absolute left-0 right-0 -bottom-1.5 h-0.5 bg-saffron rounded-full"
+          className="absolute left-0 right-0 -bottom-1.5 h-0.5 bg-saffron dark:bg-saffron rounded-full"
           transition={{
             type: "spring",
             stiffness: 400,

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -44,13 +45,13 @@ function Categories({ categories }) {
 
   const scrollLeftHandler = () => {
     if (carouselRef.current) {
-      carouselRef.current.scrollBy({ left: -200, behavior: "smooth" }); // Adjust scroll distance
+      carouselRef.current.scrollBy({ left: -200, behavior: "smooth" });
     }
   };
 
   const scrollRightHandler = () => {
     if (carouselRef.current) {
-      carouselRef.current.scrollBy({ left: 200, behavior: "smooth" }); // Adjust scroll distance
+      carouselRef.current.scrollBy({ left: 200, behavior: "smooth" });
     }
   };
 
@@ -69,7 +70,9 @@ function Categories({ categories }) {
         <IoArrowForwardOutline className="w-5 h-5" />
       </button>
       <div
-        className="h-30 bg-platinum/50 rounded-lg overflow-x-scroll select-none scroll-smooth gap-3 w-[80%]"
+        className={` bg-platinum/50 rounded-lg overflow-x-scroll select-none scroll-smooth gap-3 transition-all duration-400 ${
+          isScrolled ? "h-22 w-[75%]" : "h-30 w-[80%]"
+        }`}
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         ref={carouselRef}
         onMouseDown={handleMouseDown}
@@ -92,12 +95,30 @@ function Categories({ categories }) {
               >
                 <Link
                   href={categoryHref}
-                  className={`flex flex-col items-center justify-center shrink-0 text-center gap-y-3 h-25 rounded-md w-18 transition-all duration-300 shadow-md shadow-night border ${
-                    isActive ? activeClassName : defaultClassName
-                  }`}
+                  className={`flex flex-col items-center justify-center shrink-0 text-center   rounded-md  transition-all duration-300 shadow-md shadow-night border ${
+                    isScrolled ? "h-20 w-15 gap-y-2" : "h-25 w-18 gap-y-3"
+                  } ${isActive ? activeClassName : defaultClassName}`}
                 >
-                  <span>{category.icon}</span>
-                  <span className="text-sm">{category.title}</span>
+                  <span>
+                    <Image
+                      src={category?.image}
+                      alt={category?.name}
+                      width={200}
+                      height={200}
+                      loading="lazy"
+                      quality={[75, 85]}
+                      className={`object-center mx-auto object-cover rounded-md ${
+                        isScrolled ? "h-9 w-9" : "w-12 h-12"
+                      }`}
+                    />
+                  </span>
+                  <span
+                    className={`whitespace-nowrap overflow-hidden text-ellipsis max-w-[65px] ${
+                      isScrolled ? "text-xs px-2" : "text-sm px-1"
+                    }`}
+                  >
+                    {category.name}
+                  </span>
                 </Link>
               </li>
             );

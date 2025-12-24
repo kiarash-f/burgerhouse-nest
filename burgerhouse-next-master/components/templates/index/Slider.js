@@ -58,6 +58,7 @@ export default function Slider() {
                   alt={`Slide ${index + 1}`}
                   width={800}
                   height={500}
+                  loading="lazy"
                   className="w-full h-full object-cover object-center border border-platinum/40"
                 />
               </div>

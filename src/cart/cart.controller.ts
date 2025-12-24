@@ -12,7 +12,7 @@ import {
   Req,
   BadRequestException,
 } from '@nestjs/common';
-import type  { Request } from 'express';
+import type { Request } from 'express';
 import { CartService } from './cart.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUser } from '../decorators/current-user.decorator';

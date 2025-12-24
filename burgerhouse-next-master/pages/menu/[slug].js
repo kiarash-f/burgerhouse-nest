@@ -1,109 +1,34 @@
 import Categories from "@/components/templates/menu/Categories";
-import { LuEggFried, LuSalad } from "react-icons/lu";
-import { PiCoffeeLight, PiHamburgerLight, PiPizzaLight } from "react-icons/pi";
-import { GiChickenLeg, GiFrenchFries, GiSandwich } from "react-icons/gi";
 import MenuItems from "@/components/templates/menu/MenuItems";
-import { FaPlateWheat } from "react-icons/fa6";
+import { dehydrate, QueryClient } from "@tanstack/react-query";
+import getAllCategory, {
+  getCategoryBySlug,
+} from "@/components/services/categoryService";
+import useCategories from "@/components/hooks/useCategories";
+import Loading from "@/components/modules/Loading";
+import toast from "react-hot-toast";
+import useItems from "@/components/hooks/useItems";
+import { useRouter } from "next/router";
+import useCategoryItemsBySlug from "@/components/hooks/useCategoryItemsBySlug";
+import { useEffect, useRef } from "react";
+import StartDineInSession from "@/components/services/DineInService";
+import useStartDineInSession from "@/components/features/dineIn/useStartDineInSession";
 
 function MenuCategoryItems() {
-  const categories = [
-    {
-      id: 1,
-      title: "صبحانه",
-      slug: "breakfast",
-      icon: <LuEggFried className="w-12 h-12" />,
-    },
-    {
-      id: 2,
-      title: "قهوه",
-      slug: "coffee",
-      icon: <PiCoffeeLight className="w-12 h-12" />,
-    },
-    {
-      id: 3,
-      title: "پیتزا",
-      slug: "pizza",
-      icon: <PiPizzaLight className="w-12 h-12" />,
-    },
-    {
-      id: 4,
-      title: "سوخاری",
-      slug: "fried-chicken",
-      icon: <GiChickenLeg className="w-12 h-12" />,
-    },
-    {
-      id: 5,
-      title: "برگر",
-      slug: "burger",
-      icon: <PiHamburgerLight className="w-12 h-12" />,
-    },
-    {
-      id: 6,
-      title: "ساندویچ",
-      slug: "sandwich",
-      icon: <GiSandwich className="w-12 h-12" />,
-    },
-    {
-      id: 7,
-      title: "سالاد",
-      slug: "salad",
-      icon: <LuSalad className="w-12 h-12" />,
-    },
-    {
-      id: 8,
-      title: "پیش غذا",
-      slug: "appetizer",
-      icon: <GiFrenchFries className="w-12 h-12" />,
-    },
-    {
-      id: 9,
-      title: "بشقاب ها",
-      slug: "plates",
-      icon: <FaPlateWheat className="w-12 h-12" />,
-    },
-    {
-      id: 10,
-      title: "بشقاب ها",
-      slug: "plain",
-      icon: <FaPlateWheat className="w-12 h-12" />,
-    },
-    {
-      id: 11,
-      title: "بشقاب ها",
-      slug: "plain",
-      icon: <FaPlateWheat className="w-12 h-12" />,
-    },
-    {
-      id: 12,
-      title: "بشقاب ها",
-      slug: "plain",
-      icon: <FaPlateWheat className="w-12 h-12" />,
-    },
-    {
-      id: 13,
-      title: "بشقاب ها",
-      slug: "plain",
-      icon: <FaPlateWheat className="w-12 h-12" />,
-    },
-    {
-      id: 14,
-      title: "بشقاب ها",
-      slug: "plain",
-      icon: <FaPlateWheat className="w-12 h-12" />,
-    },
-    {
-      id: 15,
-      title: "بشقاب ها",
-      slug: "plain",
-      icon: <FaPlateWheat className="w-12 h-12" />,
-    },
-    /* {
-      id: 10,
-      title: "بشقاب",
-      slug: "plain",
-      icon: <GiSandwich className="w-12 h-12" />,
-    }, */
-  ];
+  const router = useRouter();
+  const { slug, tt } = router.query;
+  const { categories } = useCategories();
+  const { categories: categoryItemsBySlug } = useCategoryItemsBySlug(slug);
+  const { dineInSession } = useStartDineInSession();
+  const items = categoryItemsBySlug?.items || [];
+  const hasSent = useRef(false);
+
+  useEffect(() => {
+    if (tt && !hasSent.current) {
+      hasSent.current = true; // prevent duplicate firing
+      dineInSession({ tt });
+    }
+  }, [tt]);
 
   return (
     <div
@@ -113,9 +38,42 @@ function MenuCategoryItems() {
       }}
     >
       <Categories categories={categories} />
-      <MenuItems />
+      <MenuItems items={items} />
     </div>
   );
+}
+export async function getStaticPaths() {
+  const categories = await getAllCategory();
+
+  const paths = categories.map((category) => {
+    return { params: { slug: category.slug } };
+  });
+
+  return {
+    paths,
+    fallback: "blocking",
+  };
+}
+export async function getStaticProps({ params }) {
+  const { slug } = params;
+  const queryClient = new QueryClient();
+
+  await queryClient.prefetchQuery({
+    queryKey: ["categories"],
+    queryFn: getAllCategory,
+  });
+
+  await queryClient.prefetchQuery({
+    queryKey: ["categoryItemsBySlug", slug],
+    queryFn: () => getCategoryBySlug(slug),
+  });
+
+  return {
+    props: {
+      dehydratedState: dehydrate(queryClient),
+    },
+    revalidate: 24 * 60 * 60, //60 * 60
+  };
 }
 
 export default MenuCategoryItems;
