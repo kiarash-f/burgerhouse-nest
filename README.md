@@ -1,98 +1,147 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Burger House — Restaurant Backend API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A full-featured REST API for a burger restaurant, built with NestJS and TypeScript. Covers the complete ordering experience: browsing the menu, managing a cart, placing orders, dine-in QR table sessions, and real-time order status updates via Socket.IO.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Includes a Postman collection and a k6 load test report.
 
-## Description
+## Features
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **Menu management** — Categories and items with image uploads via Cloudinary.
+- **Cart system** — Add, update, and clear cart items per user session.
+- **Order management** — Place and track orders with a full status lifecycle.
+- **Dine-in / QR table tokens** — Each table gets a signed token (generated via `npm run gen:tt`). Customers scan a QR code to start a table session without logging in.
+- **Real-time updates** — Socket.IO gateway broadcasts order status changes to connected clients.
+- **Auth** — JWT authentication + Google OAuth 2.0 (`passport-google-oauth20`).
+- **User reviews** — Customers can leave and view ratings and reviews.
+- **Structured logging** — Production-grade request logging with Pino, including automatic redaction of sensitive fields (passwords, tokens, cookies).
+- **Swagger API docs** — Auto-generated at `/api`.
+- **Load tested** — k6 smoke and load test suite included, with a PDF report (`BurgerHouse_k6_Test_Report.pdf`) committed to the repo.
 
-## Project setup
+## Tech Stack
 
-```bash
-$ npm install
+| Layer | Technology |
+|---|---|
+| Framework | NestJS 11 (Node.js) |
+| Language | TypeScript 5 |
+| Database | SQLite (via TypeORM) |
+| Auth | JWT + Google OAuth 2.0 |
+| Real-time | Socket.IO (`@nestjs/websockets`) |
+| File storage | Cloudinary |
+| Logging | Pino + pino-pretty (`nestjs-pino`) |
+| Validation | `class-validator` + `class-transformer` |
+| Config validation | Joi |
+| API docs | Swagger (`@nestjs/swagger`) |
+| Load testing | k6 |
+
+## Project Structure
+
+```
+src/
+├── auth/           # JWT + Google OAuth strategies and guards
+├── cart/           # Cart CRUD per user
+├── categories/     # Menu categories
+├── config/         # Environment config with Joi validation
+├── decorators/     # Custom param and role decorators
+├── dinein/         # Dine-in session management with QR table tokens
+├── entities/       # Shared TypeORM entity base
+├── guards/         # Auth and role guards
+├── interceptors/   # Response transform interceptors
+├── item/           # Menu item CRUD with image upload
+├── media/          # Cloudinary upload service
+├── menu/           # Full menu view (categories + items)
+├── middlewares/    # Request middleware
+├── orders/         # Order placement and tracking
+├── review/         # Customer reviews and ratings
+├── strategies/     # Passport JWT + Google strategies
+└── users/          # User management
+k6/                          # k6 load test scripts
+scripts/                     # Table token generator
+burgerhouse-next-master/     # Next.js frontend
 ```
 
-## Compile and run the project
+## Getting Started
+
+### Prerequisites
+
+- Node.js 20+
+- Cloudinary account (for image uploads)
+- Google OAuth credentials (optional — for Google login)
+
+### Installation
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+git clone https://github.com/kiarash-f/burgerhouse-nest.git
+cd burgerhouse-nest
+npm install
 ```
 
-## Run tests
+### Environment Variables
+
+Create a `.env` file in the root:
+
+```env
+NODE_ENV=development
+PORT=3000
+
+JWT_SECRET=your_jwt_secret
+JWT_EXPIRES_IN=7d
+
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
+
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+DB_TYPE=sqlite
+DB_DATABASE=burgerhouse.sqlite
+DB_SYNCHRONIZE=true
+```
+
+### Running the Server
 
 ```bash
-# unit tests
-$ npm run test
+# Development (watch mode)
+npm run start:dev
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+# Production
+npm run build
+npm run start:prod
 ```
 
-## Deployment
+- API: `http://localhost:3000`
+- Swagger docs: `http://localhost:3000/api`
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Generate Table Tokens (Dine-in)
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm run gen:tt
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Running Tests
 
-## Resources
+```bash
+npm run test
+npm run test:cov
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+### Load Testing
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```bash
+# Smoke test
+npm run k6:smoke
 
-## Support
+# Full load test
+npm run k6:load
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+A pre-run PDF report (`BurgerHouse_k6_Test_Report.pdf`) is included in the root of the repo.
 
-## Stay in touch
+## API Collection
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+A complete Postman collection (`Burger House API (NestJS).postman_collection.json`) is included in the root of the repo. Import it into Postman to explore and test all endpoints.
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+UNLICENSED — private project.
