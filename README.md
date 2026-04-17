@@ -2,6 +2,8 @@
 
 A full-featured REST API for a burger restaurant, built with NestJS and TypeScript. Covers the complete ordering experience: browsing the menu, managing a cart, placing orders, dine-in QR table sessions, and real-time order status updates via Socket.IO.
 
+> **Live project** — deployed and serving real customers.
+
 Includes a Postman collection and a k6 load test report.
 
 ## Features
@@ -141,6 +143,17 @@ A pre-run PDF report (`BurgerHouse_k6_Test_Report.pdf`) is included in the root 
 ## API Collection
 
 A complete Postman collection (`Burger House API (NestJS).postman_collection.json`) is included in the root of the repo. Import it into Postman to explore and test all endpoints.
+
+## What I Learned
+
+This project was my first time pushing NestJS beyond basic CRUD, and several things required real research:
+
+- **QR table tokens without user accounts** — Dine-in customers shouldn't need to register. I built a signed token system where each physical table has a persistent token embedded in a QR code. The backend validates the token, identifies the table, and ties the session to it — no login required. The `gen:tt` script handles token generation and rotation.
+- **Socket.IO with NestJS WebSockets** — Wiring up a `@WebSocketGateway` to broadcast order status changes in real time. The tricky part was making sure the gateway shared the same auth context as the HTTP layer, so only the right customer sees their own order updates.
+- **Google OAuth alongside JWT** — Handling two completely different auth flows (OAuth redirect + JWT bearer) through the same guard system without the strategies conflicting.
+- **Pino structured logging in production** — Setting up request correlation IDs, redacting sensitive fields from logs (passwords, cookies, auth headers), and mapping HTTP status codes to log levels automatically. The difference between dev pretty-printing and production JSON output is handled by a single env check.
+- **k6 load testing** — Writing smoke and load test scripts, interpreting the results (p95 latency, error rate under load), and using the findings to identify the endpoints that needed caching or query optimisation.
+- **NestJS interceptors and decorators** — Building reusable response-transform interceptors and custom `@CurrentUser` / `@Public` decorators to avoid repeating auth logic across controllers.
 
 ## License
 
